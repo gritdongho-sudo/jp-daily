@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FDF8F8">
+<link rel="manifest" href="data:application/json,{}">
+<title>JP Daily - 일본어 데일리 학습</title>
+<style>
+/* ─── RESET & BASE ─── */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --coral-mid: #FF8E8E;
+  --blue: #4ECDC4;
+  --blue-light: #E0FAF8;
+  --blue-dark: #2BAE9E;
+  --pink: #FF8FAB;
+  --pink-light: #FFEEF4;
+  --yellow: #FFD93D;
+  --yellow-light: #FFFBEB;
+  --purple: #A78BFA;
+  --purple-light: #EDE9FE;
+  --green: #6BCB77;
+  --green-light: #E8F8EA;
+  --red: #FF4D4D;
+  --red-light: #FFF0F0;
+  --orange: #FF9F43;
+  --orange-light: #FFF3E0;
+  --teal: #26de81;
+  --teal-light: #E8FFF3;
+  --bg: #FDF8F8;
+  --card: #FFFFFF;
+  --text: #1A1A2E;
+  --muted: #9E9E9E;
+  --border: #F0E8E8;
+  --shadow: 0 4px 24px rgba(255,107,107,0.1);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+}
+
+body {
+  font-family: -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  touch-action: manipulation;
+}
+
+/* ─── RUBY (후리가나) ─── */
+ruby { ruby-align: center; }
+rt {
+  font-size: 0.5em;
+  color: var(--coral);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* ─── HEADER ─── */
+.header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(255,107,107,0.06);
+}
+.header-logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--coral), var(--pink));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.header-logo h1 { font-size: 17px; font-weight: 800; color: var(--coral); letter-spacing: -0.5px; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.streak-badge {
+  background: var(--yellow-light);
+  border: 1px solid #FFE082;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #B8860B;
+  display: flex; align-items: center; gap: 4px;
+}
+.btn-icon {
+  width: 44px; height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.btn-icon:active { background: var(--coral-light); }
+
+/* ─── TABS ─── */
+.tab-bar {
+  display: flex;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  min-height: 40px;
+  scroll-snap-align: start;
+}
+.tab-btn.active {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(255,107,107,0.3);
+}
+
+/* ─── MAIN ─── */
+.main { padding: 14px; padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+
+/* ─── NAV CONTROLS ─── */
+.nav-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 6px;
+}
+.nav-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--coral);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  min-height: 44px;
+}
+.nav-btn:active { transform: scale(0.97); background: var(--coral-light); }
+.nav-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.nav-counter {
+  background: var(--coral-light);
+  border: 1px solid #FFD0D0;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--coral);
+  white-space: nowrap;
+  min-width: 64px;
+  text-align: center;
+}
+
+/* ─── CARD ─── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px 16px 28px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--coral-light);
+  color: var(--coral);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── MAIN TEXT ─── */
+.main-text {
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--text);
+  text-align: center;
+  margin: 8px 0 4px;
+  line-height: 1.3;
+  letter-spacing: -1px;
+}
+.main-text.lg { font-size: 80px; }
+.main-text.md { font-size: 36px; letter-spacing: -0.5px; }
+.main-text.sentence { font-size: 22px; font-weight: 700; letter-spacing: 0; line-height: 1.6; text-align: left; }
+
+/* 발음 표시줄 */
+.reading-row {
+  text-align: center;
+  font-size: 18px;
+  color: var(--coral);
+  font-weight: 500;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+/* ─── TTS BUTTON ─── */
+.tts-btn {
+  position: absolute;
+  top: 16px; right: 14px;
+  width: 44px; height: 44px;
+  border-radius: var(--radius-xs);
+  background: var(--blue-light);
+  border: 1px solid #B2EBE8;
+  color: var(--blue-dark);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.tts-btn:active { transform: scale(0.9); background: var(--blue); color: #fff; }
+.tts-btn.inline {
+  position: static;
+  width: 38px; height: 38px;
+  font-size: 16px;
+}
+
+/* ─── REVEAL BOX ─── */
+.reveal-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 6px;
+}
+.reveal-box {
+  background: #F5F5F5;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px dashed #DDD;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.reveal-box.revealed { background: var(--blue-light); border: 1.5px solid var(--blue); }
+.reveal-hint { font-size: 13px; color: var(--muted); }
+.reveal-content { font-size: 15px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.5; display: none; }
+.reveal-box.revealed .reveal-hint { display: none; }
+.reveal-box.revealed .reveal-content { display: block; }
+
+/* ─── SECTION DIVIDER ─── */
+.section-divider {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 16px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── INFO ROW ─── */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  gap: 12px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--muted); font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.info-val { font-weight: 600; color: var(--text); }
+
+/* ─── BADGES ─── */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+.badge-coral { background: var(--coral-light); color: var(--coral); }
+.badge-purple { background: var(--purple-light); color: #6D28D9; }
+.badge-orange { background: var(--orange-light); color: #C05621; }
+.badge-green { background: var(--green-light); color: #276E2F; }
+.badge-teal { background: var(--teal-light); color: #087F5B; }
+.pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ─── TYPE BADGE COLORS ─── */
+.type-명사 { background: #EEF2FF; color: #3730A3; }
+.type-동사 { background: #FFF0F0; color: #C0392B; }
+.type-형용사 { background: #F0FFF4; color: #276E2F; }
+.type-い형용사 { background: #F0FFF4; color: #276E2F; }
+.type-な형용사 { background: #E8F5E9; color: #1B5E20; }
+.type-조사 { background: #FFF8E1; color: #E65100; }
+.type-부사 { background: #E3F2FD; color: #0D47A1; }
+.type-정중체 { background: #F3E5F5; color: #6A1B9A; }
+.type-종조사 { background: #FBE9E7; color: #BF360C; }
+.type-접속사 { background: #E8F5E9; color: #1B5E20; }
+.type-기타 { background: #F5F5F5; color: #616161; }
+
+/* ─── TOKEN BREAKDOWN ─── */
+.token-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.token-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #FAFAFA;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  min-height: 48px;
+}
+.token-text { font-size: 16px; font-weight: 700; color: var(--text); min-width: 44px; }
+.token-reading { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.token-type { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
+.token-meaning { font-size: 13px; color: var(--text); font-weight: 500; margin-left: auto; text-align: right; }
+
+/* ─── CONJUGATION TABLE ─── */
+.conj-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; border-radius: var(--radius-sm); overflow: hidden; }
+.conj-table th { background: var(--coral-light); color: var(--coral); padding: 7px 10px; font-weight: 700; text-align: left; font-size: 11px; }
+.conj-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.conj-table tr:last-child td { border-bottom: none; }
+.conj-table .form-label { color: var(--muted); font-size: 12px; }
+.conj-table .form-val { font-weight: 700; font-size: 15px; }
+.conj-table .form-reading { font-size: 11px; color: var(--coral); }
+.conj-table .form-meaning { font-size: 12px; color: #666; }
+
+/* ─── DIALOGUE (CONVERSATION) ─── */
+.dialogue { display: flex; flex-direction: column; gap: 12px; margin: 8px 0; }
+.bubble-wrap { display: flex; align-items: flex-start; gap: 8px; }
+.bubble-wrap.b { flex-direction: row-reverse; }
+.bubble-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.avatar-a { background: var(--coral-light); }
+.avatar-b { background: var(--blue-light); }
+.bubble {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.bubble-a { background: var(--coral-light); border: 1px solid #FFD0D0; border-bottom-left-radius: 4px; }
+.bubble-b { background: var(--blue-light); border: 1px solid #B2EBE8; border-bottom-right-radius: 4px; }
+.bubble-jp { font-weight: 700; color: var(--text); font-size: 15px; line-height: 1.7; }
+.bubble-sub { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+
+/* ─── KATAKANA PAIR ─── */
+.kana-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.kana-single {
+  background: var(--coral-light);
+  border: 1.5px solid #FFD0D0;
+  border-radius: var(--radius-sm);
+  padding: 16px 12px;
+  text-align: center;
+}
+.kana-char { font-size: 48px; font-weight: 900; color: var(--text); line-height: 1; }
+.kana-romaji { font-size: 16px; font-weight: 700; color: var(--coral); margin-top: 4px; }
+.kana-sound { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ─── KANJI BIG ─── */
+.kanji-big {
+  font-size: 88px;
+  text-align: center;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -2px;
+}
+
+/* ─── SKELETON ─── */
+.skeleton { border-radius: var(--radius); padding: 24px; background: var(--card); border: 1px solid var(--border); }
+.skel-line {
+  background: linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-xs);
+  margin-bottom: 10px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ─── FETCH BUTTON ─── */
+.fetch-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--coral), var(--pink));
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255,107,107,0.32);
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: -0.2px;
+  min-height: 52px;
+}
+.fetch-btn:active { transform: scale(0.98); box-shadow: none; }
+.fetch-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+/* ─── GRAMMAR BOX ─── */
+.grammar-box {
+  background: var(--purple-light);
+  border: 1px solid #C4B5FD;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5B21B6;
+  margin-top: 4px;
+}
+
+/* ─── QUIZ ─── */
+.quiz-header { text-align: center; margin-bottom: 16px; }
+.quiz-progress-bar { background: var(--border); border-radius: 10px; height: 8px; margin: 10px 0; overflow: hidden; }
+.quiz-progress-fill {
+  background: linear-gradient(90deg, var(--coral), var(--pink));
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+.quiz-question {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+  text-align: center;
+}
+.quiz-q-text { font-size: 19px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; }
+.quiz-q-sub { font-size: 13px; color: var(--muted); }
+.quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.quiz-opt {
+  padding: 14px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  word-break: keep-all;
+  line-height: 1.3;
+  min-height: 52px;
+  display: flex; align-items: center; justify-content: center;
+}
+.quiz-opt:active:not(.disabled) { transform: scale(0.97); }
+.quiz-opt.correct { background: var(--green-light); border-color: var(--green); color: #276E2F; }
+.quiz-opt.wrong { background: var(--red-light); border-color: var(--red); color: #C0392B; }
+.quiz-opt.disabled { pointer-events: none; }
+.quiz-explanation {
+  background: var(--yellow-light);
+  border: 1px solid #FFE082;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: #5D4037;
+}
+.quiz-next-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--coral);
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quiz-next-btn:active { transform: scale(0.98); }
+.quiz-result { text-align: center; padding: 24px 16px; }
+.quiz-score-big { font-size: 68px; font-weight: 900; color: var(--coral); line-height: 1; }
+.quiz-restart {
+  margin-top: 16px;
+  padding: 14px 40px;
+  border-radius: var(--radius-sm);
+  background: var(--coral);
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+}
+.quiz-restart.outline {
+  background: transparent;
+  color: var(--coral);
+  border: 1.5px solid var(--coral);
+  margin-top: 10px;
+}
+
+/* ─── SETTINGS MODAL ─── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.modal-sheet {
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.settings-section-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px; }
+.api-input {
+  width: 100%;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-family: monospace;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.api-input:focus { outline: none; border-color: var(--coral); }
+.settings-info { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+.settings-info a { color: var(--coral); text-decoration: none; }
+.save-btn {
+  width: 100%; margin-top: 16px; padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--coral); border: none;
+  color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+  min-height: 52px;
+}
+.save-btn:active { transform: scale(0.98); }
+.reset-btn {
+  width: 100%; margin-top: 10px; padding: 14px;
+  border-radius: var(--radius-sm);
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer;
+  min-height: 48px;
+}
+.reset-btn:active { transform: scale(0.98); }
+
+.empty-state { text-align: center; padding: 44px 24px; color: var(--muted); }
+.empty-state .big-icon { font-size: 52px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; line-height: 1.7; }
+
+/* ─── FAVORITES ─── */
+.fav-btn {
+  position: absolute;
+  bottom: 14px; right: 14px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  color: var(--muted);
+  z-index: 5;
+}
+.fav-btn:active { transform: scale(0.85); }
+.fav-btn.active { border-color: var(--yellow); background: var(--yellow-light); color: #B8860B; }
+.fav-filter-btn {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+}
+.fav-filter-btn:active { transform: scale(0.95); }
+.fav-filter-btn.active {
+  background: var(--yellow-light);
+  border-color: var(--yellow);
+  color: #B8860B;
+}
+
+/* ─── MOBILE RESPONSIVE ─── */
+@media (max-width: 380px) {
+  .header { padding: 10px 12px; }
+  .header-logo h1 { font-size: 15px; }
+  .main { padding: 10px; }
+  .card { padding: 16px 12px 26px; }
+  .nav-btn { font-size: 12px; padding: 10px 6px; }
+  .nav-counter { font-size: 12px; min-width: 56px; padding: 8px 8px; }
+  .tab-btn { padding: 8px 12px; font-size: 12px; }
+  .main-text { font-size: 44px; }
+  .main-text.lg { font-size: 64px; }
+  .main-text.md { font-size: 30px; }
+  .kanji-big { font-size: 72px; }
+  .kana-char { font-size: 40px; }
+  .quiz-options { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 381px) and (max-width: 480px) {
+  .main-text { font-size: 50px; }
+  .kanji-big { font-size: 80px; }
+}
+
+/* Smooth scroll behavior */
+html { scroll-behavior: smooth; }
+
+/* Prevent pull-to-refresh on mobile */
+body { overscroll-behavior-y: contain; }
+
+/* Better touch targets for info rows */
+.info-row { min-height: 44px; padding: 10px 0; }
+</style>
+</head>
+<body>
+
+<!-- ─── SETTINGS MODAL ─── -->
+<div class="modal-overlay" id="settingsModal" style="display:none;" onclick="closeSettingsOverlay(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ 설정</div>
+
+    <div class="settings-section-label">Anthropic API Key</div>
+    <input class="api-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
+    <div class="settings-info">
+      API 키는 이 기기의 localStorage에만 저장됩니다.<br>
+      <a href="https://console.anthropic.com/settings/keys" target="_blank">→ Anthropic Console에서 발급</a>
+    </div>
+
+    <div class="settings-section-label">학습 데이터 관리</div>
+    <button class="reset-btn" onclick="resetAllData()">🗑️ 모든 학습 데이터 초기화</button>
+    <button class="save-btn" onclick="saveSettings()">저장하기</button>
+  </div>
+</div>
+
+<!-- ─── HEADER ─── -->
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-icon">🌸</div>
+    <h1>JP Daily</h1>
+  </div>
+  <div class="header-right">
+    <div class="streak-badge">🔥 <span id="streakCount">0</span>일</div>
+    <button class="btn-icon" onclick="openSettings()">⚙️</button>
+  </div>
+</div>
+
+<!-- ─── TABS ─── -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" onclick="switchTab('katakana', this)">カタカナ</button>
+  <button class="tab-btn" onclick="switchTab('verb', this)">기초 동사</button>
+  <button class="tab-btn" onclick="switchTab('sentence', this)">한 문장</button>
+  <button class="tab-btn" onclick="switchTab('kanji', this)">기초 한자</button>
+  <button class="tab-btn" onclick="switchTab('conversation', this)">일상 회화</button>
+  <button class="tab-btn" onclick="switchTab('quiz', this)">퀴즈 🎯</button>
+</div>
+
+<!-- ─── MAIN CONTENT ─── -->
+<div class="main" id="mainContent"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE & STORAGE
+═══════════════════════════════════════════ */
+const STORAGE_KEY = 'jp_daily_v3';
+let currentTab = 'katakana';
+let state = {};
+let quizState = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch(e) {}
+  // defaults
+  if (!state.data) state.data = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+  if (!state.idx) state.idx = { katakana:0, verb:0, sentence:0, kanji:0, conversation:0 };
+  if (!state.streak) state.streak = { count:0, lastDate:'' };
+  if (!state.apiKey) state.apiKey = '';
+  if (!state.favorites) state.favorites = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function getApiKey() {
+  const input = document.getElementById('apiKeyInput');
+  return (input ? input.value.trim() : '') || state.apiKey || '';
+}
+
+/* ═══════════════════════════════════════════
+   STREAK
+═══════════════════════════════════════════ */
+function updateStreak() {
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.streak.lastDate === today) return;
+  if (state.streak.lastDate === yesterday) state.streak.count++;
+  else state.streak.count = 1;
+  state.streak.lastDate = today;
+  saveState();
+  document.getElementById('streakCount').textContent = state.streak.count;
+}
+
+/* ═══════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════ */
+function openSettings() {
+  document.getElementById('apiKeyInput').value = state.apiKey || '';
+  document.getElementById('settingsModal').style.display = 'flex';
+}
+function closeSettingsOverlay(e) {
+  if (e.target.id === 'settingsModal') document.getElementById('settingsModal').style.display = 'none';
+}
+function saveSettings() {
+  state.apiKey = document.getElementById('apiKeyInput').value.trim();
+  saveState();
+  document.getElementById('settingsModal').style.display = 'none';
+  showToast('저장되었습니다 ✓');
+}
+function resetAllData() {
+  if (!confirm('모든 학습 데이터를 삭제할까요?')) return;
+  state.data = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+  state.idx = { katakana:0, verb:0, sentence:0, kanji:0, conversation:0 };
+  state.favorites = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+  favFilterActive = false;
+  saveState();
+  document.getElementById('settingsModal').style.display = 'none';
+  render();
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:999;transition:opacity 0.3s;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.opacity = '0', 2000);
+}
+
+/* ═══════════════════════════════════════════
+   TTS
+═══════════════════════════════════════════ */
+function speak(text) {
+  if (!window.speechSynthesis) return showToast('이 브라우저는 TTS를 지원하지 않아요');
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP';
+  u.rate = 0.88;
+  window.speechSynthesis.speak(u);
+}
+function speakSequence(texts, delay = 600) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  let i = 0;
+  function next() {
+    if (i >= texts.length) return;
+    const u = new SpeechSynthesisUtterance(texts[i]);
+    u.lang = 'ja-JP'; u.rate = 0.85;
+    u.onend = () => { i++; setTimeout(next, delay); };
+    window.speechSynthesis.speak(u);
+  }
+  next();
+}
+
+/* ═══════════════════════════════════════════
+   RUBY RENDERING
+═══════════════════════════════════════════ */
+// pairs: [{base:"食", ruby:"た"}, {base:"べる", ruby:""}]
+function renderRuby(pairs) {
+  if (!pairs || !Array.isArray(pairs)) return '';
+  return pairs.map(p =>
+    p.ruby ? `<ruby>${p.base}<rt>${p.ruby}</rt></ruby>` : p.base
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════
+   REVEAL BOX
+═══════════════════════════════════════════ */
+function toggleReveal(el) {
+  el.classList.toggle('revealed');
+}
+function revealBoxHTML(label, content, id) {
+  return `<div class="reveal-label">${label}</div>
+<div class="reveal-box" id="${id}" onclick="toggleReveal(this)">
+  <span class="reveal-hint">👆 터치해서 보기</span>
+  <span class="reveal-content">${content}</span>
+</div>`;
+}
+
+/* ═══════════════════════════════════════════
+   FAVORITES
+═══════════════════════════════════════════ */
+let favFilterActive = false;
+
+function toggleFavorite(tab, idx) {
+  const favs = state.favorites[tab];
+  const pos = favs.indexOf(idx);
+  if (pos === -1) favs.push(idx);
+  else favs.splice(pos, 1);
+  saveState();
+  render();
+}
+function isFavorite(tab, idx) {
+  return state.favorites[tab].includes(idx);
+}
+function favBtnHTML(tab, idx) {
+  const active = isFavorite(tab, idx) ? ' active' : '';
+  return `<button class="fav-btn${active}" onclick="event.stopPropagation();toggleFavorite('${tab}',${idx})" title="즐겨찾기">★</button>`;
+}
+function toggleFavFilter() {
+  favFilterActive = !favFilterActive;
+  render();
+}
+function favFilterBtnHTML() {
+  const active = favFilterActive ? ' active' : '';
+  return `<button class="fav-filter-btn${active}" onclick="toggleFavFilter()">★ 즐겨찾기만</button>`;
+}
+
+/* ═══════════════════════════════════════════
+   NAV HTML
+═══════════════════════════════════════════ */
+function getFilteredIndices(tab) {
+  if (!favFilterActive) return null;
+  const arr = state.data[tab] || [];
+  return arr.map((_, i) => i).filter(i => state.favorites[tab].includes(i));
+}
+
+function navHTML(tab) {
+  const arr = state.data[tab] || [];
+  const filtered = getFilteredIndices(tab);
+  const idx = state.idx[tab] || 0;
+
+  let total, currentPos, prevDisabled, nextDisabled;
+  if (filtered) {
+    total = filtered.length;
+    currentPos = filtered.indexOf(idx);
+    if (currentPos === -1) currentPos = 0;
+    prevDisabled = currentPos <= 0;
+    nextDisabled = currentPos >= total - 1;
+  } else {
+    total = arr.length;
+    currentPos = idx;
+    prevDisabled = idx <= 0;
+    nextDisabled = idx >= total - 1;
+  }
+  const display = total === 0 ? '0 / 0' : `${(total > 0 ? currentPos + 1 : 0)} / ${total}`;
+
+  return `<div class="nav-controls">
+  <button class="nav-btn" onclick="navigate('${tab}',-1)" ${prevDisabled ? 'disabled' : ''}>◀ 이전 복습</button>
+  <div class="nav-counter">${display}</div>
+  <button class="nav-btn" onclick="navigate('${tab}',1)" ${nextDisabled ? 'disabled' : ''}>다음 학습 ▶</button>
+</div>
+<div style="display:flex;justify-content:flex-end;margin-bottom:10px">${favFilterBtnHTML()}</div>`;
+}
+function navigate(tab, dir) {
+  const arr = state.data[tab];
+  if (!arr || arr.length === 0) return;
+  const filtered = getFilteredIndices(tab);
+  if (filtered) {
+    if (filtered.length === 0) return;
+    const currentPos = filtered.indexOf(state.idx[tab]);
+    let newPos = (currentPos === -1 ? 0 : currentPos) + dir;
+    newPos = Math.max(0, Math.min(filtered.length - 1, newPos));
+    state.idx[tab] = filtered[newPos];
+  } else {
+    let idx = state.idx[tab] + dir;
+    idx = Math.max(0, Math.min(arr.length - 1, idx));
+    state.idx[tab] = idx;
+  }
+  saveState();
+  render();
+}
+
+/* ═══════════════════════════════════════════
+   SKELETON
+═══════════════════════════════════════════ */
+function showSkeleton() {
+  document.getElementById('mainContent').innerHTML = `
+<div class="skeleton">
+  <div class="skel-line" style="height:14px;width:50%;margin-bottom:20px"></div>
+  <div class="skel-line" style="height:72px;width:60%;margin:0 auto 16px"></div>
+  <div class="skel-line" style="height:44px;width:100%;margin-bottom:10px"></div>
+  <div class="skel-line" style="height:44px;width:100%;margin-bottom:10px"></div>
+  <div class="skel-line" style="height:44px;width:80%"></div>
+</div>`;
+}
+
+/* ═══════════════════════════════════════════
+   API CALL
+═══════════════════════════════════════════ */
+async function callClaude(prompt) {
+  const key = getApiKey();
+  if (!key) {
+    openSettings();
+    throw new Error('NO_KEY');
+  }
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1200,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (res.status === 429) throw new Error('RATE_LIMIT');
+  if (res.status === 401) throw new Error('AUTH');
+  if (!res.ok) throw new Error('API_' + res.status);
+  const data = await res.json();
+  let text = data.content.map(c => c.text || '').join('');
+  // strip markdown fences
+  text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  return JSON.parse(text);
+}
+
+function handleApiError(e) {
+  if (e.message === 'NO_KEY') return;
+  if (e.message === 'RATE_LIMIT') showToast('⚠️ API 한도 초과 (429). 잠시 후 다시 시도하세요.');
+  else if (e.message === 'AUTH') showToast('❌ API 키 오류. 설정을 확인해주세요.');
+  else showToast('오류: ' + e.message);
+}
+
+/* ═══════════════════════════════════════════
+   PROMPTS
+   모두 JSON만 반환하도록 엄격 지시
+═══════════════════════════════════════════ */
+
+// 카타카나 2개 한 번에
+function promptKatakana(existing) {
+  const used = existing.map(p => p.pair.map(x => x.char).join(',')).join(', ');
+  return `당신은 일본어 교육 전문가입니다. 카타카나 글자 2개를 골라 학습 데이터를 만들어주세요.
+${used ? `이미 사용된 글자: ${used} — 제외할 것.` : ''}
+반드시 순수 JSON만 반환하세요. 다른 텍스트, 설명, 마크다운 불필요.
+
+형식:
+{
+  "pair": [
+    {
+      "char": "ア",
+      "romaji": "a",
+      "korean_sound": "아",
+      "tip": "A를 변형한 모양, 세 획",
+      "ruby_pairs": [{"base":"ア","ruby":""}],
+      "examples": [
+        {"word":"アイス","ruby_pairs":[{"base":"ア","ruby":""},{"base":"イ","ruby":""},{"base":"ス","ruby":""}],"meaning":"아이스크림"},
+        {"word":"アジア","ruby_pairs":[{"base":"ア","ruby":""},{"base":"ジ","ruby":""},{"base":"ア","ruby":""}],"meaning":"아시아"}
+      ]
+    },
+    {
+      "char": "イ",
+      "romaji": "i",
+      "korean_sound": "이",
+      "tip": "人(사람 인)을 단순화한 모양",
+      "ruby_pairs": [{"base":"イ","ruby":""}],
+      "examples": [
+        {"word":"イカ","ruby_pairs":[{"base":"イ","ruby":""},{"base":"カ","ruby":""}],"meaning":"오징어"},
+        {"word":"イギリス","ruby_pairs":[{"base":"イ","ruby":""},{"base":"ギ","ruby":""},{"base":"リ","ruby":""},{"base":"ス","ruby":""}],"meaning":"영국"}
+      ]
+    }
+  ]
+}`;
+}
+
+// 기초 동사
+function promptVerb(existing) {
+  const used = existing.map(x => x.verb).join(', ');
+  return `당신은 일본어 교육 전문가입니다. 기초 동사 1개 학습 데이터를 만들어주세요.
+${used ? `이미 사용된 동사: ${used} — 제외.` : ''}
+반드시 순수 JSON만 반환.
+
+{
+  "verb": "食べる",
+  "ruby_pairs": [{"base":"食","ruby":"た"},{"base":"べる","ruby":""}],
+  "meaning": "먹다",
+  "group": "2그룹",
+  "conjugations": [
+    {"form":"ます형","value":"食べます","reading":"たべます","meaning":"먹습니다"},
+    {"form":"て형","value":"食べて","reading":"たべて","meaning":"먹고/먹어서"},
+    {"form":"ない형","value":"食べない","reading":"たべない","meaning":"먹지 않다"},
+    {"form":"た형","value":"食べた","reading":"たべた","meaning":"먹었다"},
+    {"form":"れば형","value":"食べれば","reading":"たべれば","meaning":"먹으면"}
+  ],
+  "example": {
+    "jp": "私は毎日ご飯を食べます。",
+    "ruby_pairs": [
+      {"base":"私","ruby":"わたし"},{"base":"は","ruby":""},
+      {"base":"毎日","ruby":"まいにち"},
+      {"base":"ご飯","ruby":"はん"},{"base":"を","ruby":""},
+      {"base":"食","ruby":"た"},{"base":"べます。","ruby":""}
+    ],
+    "kr": "저는 매일 밥을 먹습니다."
+  }
+}`;
+}
+
+// 한 문장 (토큰 분해 포함)
+function promptSentence(existing) {
+  return `당신은 일본어 교육 전문가입니다. 초급 학습자에게 유용한 짧은 일본어 문장 1개를 만들어주세요.
+반드시 순수 JSON만 반환.
+
+{
+  "sentence": "今日はいい天気ですね。",
+  "ruby_pairs": [
+    {"base":"今日","ruby":"きょう"},{"base":"は","ruby":""},
+    {"base":"いい","ruby":""},
+    {"base":"天気","ruby":"てんき"},
+    {"base":"です","ruby":""},{"base":"ね。","ruby":""}
+  ],
+  "meaning": "오늘은 날씨가 좋네요.",
+  "level": "초급",
+  "grammar": "「〜ですね」는 상대방에게 동의나 공감을 구할 때 쓰는 표현입니다. 「ね」는 종조사로 '~네요', '~죠'에 해당합니다.",
+  "tokens": [
+    {"text":"今日","reading":"きょう","type":"명사","meaning":"오늘"},
+    {"text":"は","reading":"は","type":"조사","meaning":"~은/는 (주제 표시)"},
+    {"text":"いい","reading":"いい","type":"い형용사","meaning":"좋은"},
+    {"text":"天気","reading":"てんき","type":"명사","meaning":"날씨"},
+    {"text":"です","reading":"です","type":"정중체","meaning":"입니다 (정중한 종결)"},
+    {"text":"ね","reading":"ね","type":"종조사","meaning":"~네요, ~죠 (동의/공감)"}
+  ]
+}`;
+}
+
+// 기초 한자
+function promptKanji(existing) {
+  const used = existing.map(x => x.kanji).join(', ');
+  return `당신은 일본어 교육 전문가입니다. 기초 한자 1개 학습 데이터를 만들어주세요.
+${used ? `이미 사용된 한자: ${used} — 제외.` : ''}
+반드시 순수 JSON만 반환.
+
+{
+  "kanji": "日",
+  "onyomi": "ニチ、ジツ",
+  "kunyomi": "ひ、か",
+  "meaning": "날 일, 해",
+  "stroke_count": 4,
+  "related": [
+    {"word":"日本","ruby_pairs":[{"base":"日","ruby":"に"},{"base":"本","ruby":"ほん"}],"meaning":"일본"},
+    {"word":"今日","ruby_pairs":[{"base":"今日","ruby":"きょう"}],"meaning":"오늘"},
+    {"word":"日曜日","ruby_pairs":[{"base":"日曜日","ruby":"にちようび"}],"meaning":"일요일"},
+    {"word":"毎日","ruby_pairs":[{"base":"毎日","ruby":"まいにち"}],"meaning":"매일"}
+  ]
+}`;
+}
+
+// 일상 회화
+function promptConversation(existing) {
+  return `당신은 일본어 교육 전문가입니다. 일상 회화 짧은 대화(2~3턴) 1세트를 만들어주세요.
+반드시 순수 JSON만 반환.
+
+{
+  "topic": "편의점에서",
+  "lines": [
+    {
+      "speaker": "A",
+      "jp": "すみません、トイレはどこですか？",
+      "ruby_pairs": [
+        {"base":"すみません、","ruby":""},
+        {"base":"トイレは","ruby":""},
+        {"base":"どこですか？","ruby":""}
+      ],
+      "kr": "저기요, 화장실이 어디에 있나요?"
+    },
+    {
+      "speaker": "B",
+      "jp": "あちらです。突き当たりを右に曲がってください。",
+      "ruby_pairs": [
+        {"base":"あちらです。","ruby":""},
+        {"base":"突","ruby":"つ"},{"base":"き","ruby":""},
+        {"base":"当","ruby":"あ"},{"base":"たりを","ruby":""},
+        {"base":"右","ruby":"みぎ"},{"base":"に","ruby":""},
+        {"base":"曲","ruby":"ま"},{"base":"がってください。","ruby":""}
+      ],
+      "kr": "저쪽입니다. 막다른 곳에서 오른쪽으로 도세요."
+    },
+    {
+      "speaker": "A",
+      "jp": "ありがとうございます！",
+      "ruby_pairs": [{"base":"ありがとうございます！","ruby":""}],
+      "kr": "감사합니다!"
+    }
+  ]
+}`;
+}
+
+/* ═══════════════════════════════════════════
+   FETCH HANDLERS
+═══════════════════════════════════════════ */
+async function fetchNew(tab) {
+  updateStreak();
+  showSkeleton();
+  try {
+    let result;
+    const existing = state.data[tab] || [];
+
+    if (tab === 'katakana') result = await callClaude(promptKatakana(existing));
+    else if (tab === 'verb') result = await callClaude(promptVerb(existing));
+    else if (tab === 'sentence') result = await callClaude(promptSentence(existing));
+    else if (tab === 'kanji') result = await callClaude(promptKanji(existing));
+    else if (tab === 'conversation') result = await callClaude(promptConversation(existing));
+
+    state.data[tab].push(result);
+    state.idx[tab] = state.data[tab].length - 1;
+    saveState();
+    render();
+  } catch(e) {
+    handleApiError(e);
+    render();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: KATAKANA (2개 페어)
+═══════════════════════════════════════════ */
+function renderKatakana() {
+  const arr = state.data.katakana;
+  const filtered = getFilteredIndices('katakana');
+  const idx = state.idx.katakana;
+  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : (filtered.length > 0 ? arr[filtered[0]] : null);
+  if (filtered && item && !filtered.includes(idx)) state.idx.katakana = filtered[0];
+
+  let html = navHTML('katakana');
+
+  if (!item || (filtered && filtered.length === 0)) {
+    html += `<div class="empty-state"><div class="big-icon">✨</div><p>카타카나 2개씩 학습해봐요!<br>아래 버튼을 눌러 시작하세요.</p></div>`;
+  } else {
+    const [a, b] = item.pair;
+    const uid = 'k' + idx;
+
+    html += `<div class="card">
+  <div class="card-tag">🔤 카타카나 · 오늘의 2글자</div>
+  <div class="kana-pair">
+    <div class="kana-single">
+      <div class="kana-char">${a.char}</div>
+      <div class="kana-romaji">${a.romaji}</div>
+      <div class="kana-sound">${a.korean_sound}</div>
+      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak('${a.char}')">🔊</button>
+    </div>
+    <div class="kana-single">
+      <div class="kana-char">${b.char}</div>
+      <div class="kana-romaji">${b.romaji}</div>
+      <div class="kana-sound">${b.korean_sound}</div>
+      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak('${b.char}')">🔊</button>
+    </div>
+  </div>
+
+  <div class="section-divider">외우기 팁</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    <div style="background:var(--yellow-light);border:1px solid #FFE082;border-radius:var(--radius-sm);padding:10px;font-size:13px;line-height:1.5;color:#5D4037">
+      <strong>${a.char}</strong>: ${a.tip}
+    </div>
+    <div style="background:var(--yellow-light);border:1px solid #FFE082;border-radius:var(--radius-sm);padding:10px;font-size:13px;line-height:1.5;color:#5D4037">
+      <strong>${b.char}</strong>: ${b.tip}
+    </div>
+  </div>
+
+  <div class="section-divider">예시 단어</div>
+  ${[a, b].map(ch => ch.examples.map(ex => `
+  <div class="info-row">
+    <div>
+      <div class="info-val">${renderRuby(ex.ruby_pairs)}</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:13px;color:var(--muted)">${ex.meaning}</div>
+    </div>
+  </div>`).join('')).join('')}
+  ${favBtnHTML('katakana', idx)}
+</div>`;
+  }
+
+  html += `<button class="fetch-btn" onclick="fetchNew('katakana')">✨ 오늘의 カタカナ 2글자 배우기</button>`;
+  return html;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: VERB
+═══════════════════════════════════════════ */
+function renderVerb() {
+  const arr = state.data.verb;
+  const filtered = getFilteredIndices('verb');
+  let idx = state.idx.verb;
+  if (filtered && !filtered.includes(idx) && filtered.length > 0) { idx = filtered[0]; state.idx.verb = idx; }
+  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : null;
+
+  let html = navHTML('verb');
+
+  if (!item || (filtered && filtered.length === 0)) {
+    html += `<div class="empty-state"><div class="big-icon">🎯</div><p>기초 동사를 학습해봐요!</p></div>`;
+  } else {
+    const uid = 'v' + idx;
+    html += `<div class="card">
+  <div class="card-tag">🎯 기초 동사</div>
+  <button class="tts-btn" onclick="speak('${item.verb}')">🔊</button>
+
+  <div class="main-text md" style="text-align:center;margin:8px 0 4px">${renderRuby(item.ruby_pairs)}</div>
+  <div class="reading-row">${item.ruby_pairs.map(p => p.ruby || p.base).join('')}</div>
+
+  <div class="pill-row" style="justify-content:center;margin-bottom:12px">
+    <span class="badge badge-purple">${item.group}</span>
+    <span class="badge badge-coral">${item.meaning}</span>
+  </div>
+
+  <div class="section-divider">활용표</div>
+  <table class="conj-table">
+    <thead><tr><th>형태</th><th>활용</th><th>읽기</th><th>뜻</th></tr></thead>
+    <tbody>
+      ${item.conjugations.map(c => `<tr>
+        <td class="form-label">${c.form}</td>
+        <td class="form-val">${c.value}</td>
+        <td class="form-reading">${c.reading}</td>
+        <td class="form-meaning">${c.meaning}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+
+  <div class="section-divider">예문</div>
+  <div style="font-size:17px;font-weight:700;line-height:1.8;margin-bottom:6px">
+    ${renderRuby(item.example.ruby_pairs)}
+    <button class="tts-btn inline" style="vertical-align:middle;margin-left:6px" onclick="speak('${item.example.jp}')">🔊</button>
+  </div>
+  ${revealBoxHTML('한국어 뜻', item.example.kr, uid + '_kr')}
+  ${favBtnHTML('verb', idx)}
+</div>`;
+  }
+
+  html += `<button class="fetch-btn" onclick="fetchNew('verb')">✨ 새 동사 학습하기</button>`;
+  return html;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: SENTENCE (토큰 분해)
+═══════════════════════════════════════════ */
+const TYPE_BADGE = {
+  '명사':'type-명사','동사':'type-동사','형용사':'type-형용사',
+  'い형용사':'type-い형용사','な형용사':'type-な형용사',
+  '조사':'type-조사','부사':'type-부사','정중체':'type-정중체',
+  '종조사':'type-종조사','접속사':'type-접속사'
+};
+
+function renderSentence() {
+  const arr = state.data.sentence;
+  const filtered = getFilteredIndices('sentence');
+  let idx = state.idx.sentence;
+  if (filtered && !filtered.includes(idx) && filtered.length > 0) { idx = filtered[0]; state.idx.sentence = idx; }
+  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : null;
+
+  let html = navHTML('sentence');
+
+  if (!item || (filtered && filtered.length === 0)) {
+    html += `<div class="empty-state"><div class="big-icon">💬</div><p>오늘의 한 문장을 학습해봐요!</p></div>`;
+  } else {
+    const uid = 's' + idx;
+    html += `<div class="card">
+  <div class="card-tag">💬 한 문장</div>
+  <button class="tts-btn" onclick="speak('${item.sentence}')">🔊</button>
+
+  <span class="badge badge-coral" style="margin-bottom:12px;display:inline-block">${item.level || '초급'}</span>
+
+  <div style="font-size:20px;font-weight:700;line-height:1.9;margin-bottom:4px">
+    ${renderRuby(item.ruby_pairs)}
+  </div>
+
+  ${revealBoxHTML('한국어 뜻', item.meaning, uid + '_kr')}
+
+  <div class="section-divider">단어 분해</div>
+  <div class="token-grid">
+    ${(item.tokens || []).map(tok => {
+      const badgeCls = TYPE_BADGE[tok.type] || 'type-기타';
+      return `<div class="token-item">
+        <div>
+          <div class="token-text">${tok.text}</div>
+          <div class="token-reading">${tok.reading}</div>
+        </div>
+        <span class="token-type badge ${badgeCls}">${tok.type}</span>
+        <div class="token-meaning">${tok.meaning}</div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="section-divider">문법 포인트</div>
+  <div class="grammar-box">${item.grammar}</div>
+  ${favBtnHTML('sentence', idx)}
+</div>`;
+  }
+
+  html += `<button class="fetch-btn" onclick="fetchNew('sentence')">✨ 새 문장 학습하기</button>`;
+  return html;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: KANJI
+═══════════════════════════════════════════ */
+function renderKanji() {
+  const arr = state.data.kanji;
+  const filtered = getFilteredIndices('kanji');
+  let idx = state.idx.kanji;
+  if (filtered && !filtered.includes(idx) && filtered.length > 0) { idx = filtered[0]; state.idx.kanji = idx; }
+  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : null;
+
+  let html = navHTML('kanji');
+
+  if (!item || (filtered && filtered.length === 0)) {
+    html += `<div class="empty-state"><div class="big-icon">🈳</div><p>기초 한자를 학습해봐요!</p></div>`;
+  } else {
+    const uid = 'kj' + idx;
+    html += `<div class="card">
+  <div class="card-tag">🈳 기초 한자</div>
+  <button class="tts-btn" onclick="speak('${item.kanji}')">🔊</button>
+
+  <div class="kanji-big">${item.kanji}</div>
+  <div class="pill-row" style="justify-content:center;margin:12px 0">
+    ${item.stroke_count ? `<span class="badge badge-blue">${item.stroke_count}획</span>` : ''}
+    <span class="badge badge-coral">음독: ${item.onyomi}</span>
+    <span class="badge badge-teal">훈독: ${item.kunyomi}</span>
+  </div>
+
+  ${revealBoxHTML('뜻', item.meaning, uid + '_meaning')}
+
+  <div class="section-divider">관련 단어</div>
+  ${item.related.map(r => `<div class="info-row">
+    <div>
+      <div class="info-val" style="font-size:17px">${renderRuby(r.ruby_pairs)}</div>
+    </div>
+    <div style="text-align:right;font-size:13px;color:var(--muted)">${r.meaning}</div>
+  </div>`).join('')}
+  ${favBtnHTML('kanji', idx)}
+</div>`;
+  }
+
+  html += `<button class="fetch-btn" onclick="fetchNew('kanji')">✨ 새 한자 학습하기</button>`;
+  return html;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER: CONVERSATION
+═══════════════════════════════════════════ */
+function renderConversation() {
+  const arr = state.data.conversation;
+  const filtered = getFilteredIndices('conversation');
+  let idx = state.idx.conversation;
+  if (filtered && !filtered.includes(idx) && filtered.length > 0) { idx = filtered[0]; state.idx.conversation = idx; }
+  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : null;
+
+  let html = navHTML('conversation');
+
+  if (!item || (filtered && filtered.length === 0)) {
+    html += `<div class="empty-state"><div class="big-icon">🗣️</div><p>일상 회화를 학습해봐요!</p></div>`;
+  } else {
+    const bubblesHTML = item.lines.map(line => {
+      const isB = line.speaker === 'B';
+      const rubyText = renderRuby(line.ruby_pairs);
+      return `<div class="bubble-wrap ${isB ? 'b' : ''}">
+        <div class="bubble-avatar ${isB ? 'avatar-b' : 'avatar-a'}">${isB ? '👦' : '👧'}</div>
+        <div class="bubble ${isB ? 'bubble-b' : 'bubble-a'}">
+          <div class="bubble-jp">${rubyText}</div>
+          <div class="bubble-sub">${line.kr}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="card">
+  <div class="card-tag">🗣️ 일상 회화</div>
+  <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:16px">📍 ${item.topic}</div>
+  <div class="dialogue">${bubblesHTML}</div>
+  <button onclick="speakSequence(${JSON.stringify(item.lines.map(l => l.jp))})" style="margin-top:14px;padding:10px 18px;border-radius:var(--radius-sm);background:var(--blue-light);border:1px solid #B2EBE8;color:var(--blue-dark);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+    🔊 전체 회화 듣기
+  </button>
+  ${favBtnHTML('conversation', idx)}
+</div>`;
+  }
+
+  html += `<button class="fetch-btn" onclick="fetchNew('conversation')">✨ 새 대화 학습하기</button>`;
+  return html;
+}
+
+/* ═══════════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════════ */
+function buildQuizQuestions() {
+  const pool = [];
+  const d = state.data;
+
+  // 카타카나
+  d.katakana.forEach(item => {
+    item.pair.forEach(ch => {
+      pool.push({ q: `카타카나 「${ch.char}」의 발음은?`, a: ch.korean_sound, exp: `${ch.char} = ${ch.romaji} (${ch.korean_sound})` });
+      pool.push({ q: `카타카나 「${ch.char}」의 로마자 표기는?`, a: ch.romaji, exp: `${ch.char} = ${ch.romaji}` });
+    });
+  });
+
+  // 동사
+  d.verb.forEach(item => {
+    pool.push({ q: `동사 「${item.verb}」의 뜻은?`, a: item.meaning, exp: `${item.verb} (${item.ruby_pairs.map(p=>p.ruby||p.base).join('')}) = ${item.meaning}` });
+    const masu = item.conjugations.find(c => c.form === 'ます형');
+    if (masu) pool.push({ q: `「${item.verb}」의 ます형은?`, a: masu.value, exp: `${item.verb} → ${masu.value} (${masu.reading})` });
+  });
+
+  // 문장
+  d.sentence.forEach(item => {
+    pool.push({ q: `「${item.sentence}」의 한국어 뜻은?`, a: item.meaning, exp: item.grammar });
+    (item.tokens || []).filter(t => t.type === '명사' || t.type === '동사').forEach(tok => {
+      pool.push({ q: `「${tok.text}」의 뜻은?`, a: tok.meaning, exp: `${tok.text} (${tok.reading}) = ${tok.meaning} [${tok.type}]` });
+    });
+  });
+
+  // 한자
+  d.kanji.forEach(item => {
+    pool.push({ q: `한자 「${item.kanji}」의 뜻은?`, a: item.meaning, exp: `${item.kanji} : 음독 ${item.onyomi}, 훈독 ${item.kunyomi}` });
+    pool.push({ q: `한자 「${item.kanji}」의 음독은?`, a: item.onyomi, exp: `${item.kanji}의 음독 = ${item.onyomi}` });
+  });
+
+  if (pool.length < 4) return null;
+
+  const answers = pool.map(p => p.a);
+  const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+
+  return shuffled.map(q => {
+    const wrongs = answers.filter(a => a !== q.a).sort(() => Math.random() - 0.5).slice(0, 3);
+    const opts = [q.a, ...wrongs].sort(() => Math.random() - 0.5);
+    return { ...q, opts };
+  });
+}
+
+function renderQuiz() {
+  const total = Object.values(state.data).reduce((s, a) => s + a.length, 0);
+  const kataTotal = state.data.katakana.reduce((s, x) => s + x.pair.length, 0);
+
+  if (total < 2) {
+    return `<div class="empty-state">
+      <div class="big-icon">🎯</div>
+      <p>퀴즈를 풀려면 먼저<br>학습 데이터가 필요해요!<br><br>다른 탭에서 먼저 공부해주세요.</p>
+    </div>`;
+  }
+
+  // 결과 화면
+  if (quizState && quizState.done) {
+    const total = quizState.questions.length;
+    const score = quizState.score;
+    const pct = Math.round(score / total * 100);
+    const emoji = pct >= 80 ? '🎉' : pct >= 50 ? '😊' : '💪';
+    const msg = pct >= 80 ? '완벽해요! 실력이 느셨네요!' : pct >= 50 ? '잘 하고 있어요! 계속 연습해봐요.' : '더 학습하고 다시 도전해봐요!';
+    return `<div class="quiz-result">
+      <div style="font-size:52px;margin-bottom:12px">${emoji}</div>
+      <div class="quiz-score-big">${score}<span style="font-size:28px;color:var(--muted)"> / ${total}</span></div>
+      <div style="font-size:16px;color:var(--muted);margin:8px 0">${pct}% 정답률</div>
+      <div style="font-size:14px;color:#666;margin-bottom:20px">${msg}</div>
+      <button class="quiz-restart" onclick="startQuiz()">다시 풀기 🔄</button>
+      <button class="quiz-restart outline" onclick="quizState=null;render()">처음으로</button>
+    </div>`;
+  }
+
+  // 시작 화면
+  if (!quizState) {
+    return `<div style="text-align:center;padding:32px 16px">
+      <div style="font-size:64px;margin-bottom:12px">🎯</div>
+      <div style="font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px">퀴즈 도전!</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px">
+        지금까지 학습한 카타카나 ${kataTotal}자,<br>
+        동사 ${state.data.verb.length}개, 문장 ${state.data.sentence.length}개,<br>
+        한자 ${state.data.kanji.length}개를 바탕으로<br>
+        무작위 10문제를 출제합니다.
+      </div>
+      <button class="fetch-btn" onclick="startQuiz()">퀴즈 시작하기 🚀</button>
+    </div>`;
+  }
+
+  // 문제 화면
+  const qs = quizState.questions;
+  const ci = quizState.currentIdx;
+  const q = qs[ci];
+  const answered = quizState.answered;
+  const pct = Math.round(ci / qs.length * 100);
+
+  const optsHTML = q.opts.map(opt => {
+    let cls = 'quiz-opt';
+    if (answered) {
+      if (opt === q.a) cls += ' correct';
+      else if (opt === quizState.chosen) cls += ' wrong';
+      cls += ' disabled';
+    }
+    return `<button class="${cls}" onclick="answerQuiz(this, '${opt.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${opt}</button>`;
+  }).join('');
+
+  const explanationHTML = answered ? `
+    <div class="quiz-explanation">
+      ${quizState.chosen === q.a ? '✅ 정답!' : `❌ 오답! 정답은 <strong>${q.a}</strong>`}<br>
+      <span style="font-size:13px;color:#795548;margin-top:4px;display:block">${q.exp || ''}</span>
+    </div>
+    <button class="quiz-next-btn" onclick="nextQuiz()">
+      ${ci < qs.length - 1 ? '다음 문제 →' : '결과 보기 🏁'}
+    </button>` : '';
+
+  return `<div class="quiz-header">
+    <div style="font-size:13px;color:var(--muted);font-weight:600">${ci + 1} / ${qs.length} 문제</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:13px;color:var(--muted)">현재 점수 ${quizState.score}점</div>
+  </div>
+  <div class="quiz-question">
+    <div class="quiz-q-text">${q.q}</div>
+  </div>
+  <div class="quiz-options">${optsHTML}</div>
+  ${explanationHTML}`;
+}
+
+function startQuiz() {
+  const questions = buildQuizQuestions();
+  if (!questions) return showToast('학습 데이터가 부족해요. 더 학습해주세요!');
+  quizState = { questions, currentIdx: 0, score: 0, answered: false, chosen: null, done: false };
+  render();
+}
+function answerQuiz(el, chosen) {
+  if (!quizState || quizState.answered) return;
+  quizState.answered = true;
+  quizState.chosen = chosen;
+  if (chosen === quizState.questions[quizState.currentIdx].a) quizState.score++;
+  render();
+}
+function nextQuiz() {
+  if (!quizState) return;
+  if (quizState.currentIdx < quizState.questions.length - 1) {
+    quizState.currentIdx++;
+    quizState.answered = false;
+    quizState.chosen = null;
+    render();
+  } else {
+    quizState.done = true;
+    render();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   TAB SWITCH & RENDER
+═══════════════════════════════════════════ */
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (tab !== 'quiz') quizState = null;
+  render();
+}
+
+function render() {
+  const el = document.getElementById('mainContent');
+  switch(currentTab) {
+    case 'katakana':     el.innerHTML = renderKatakana(); break;
+    case 'verb':         el.innerHTML = renderVerb(); break;
+    case 'sentence':     el.innerHTML = renderSentence(); break;
+    case 'kanji':        el.innerHTML = renderKanji(); break;
+    case 'conversation': el.innerHTML = renderConversation(); break;
+    case 'quiz':         el.innerHTML = renderQuiz(); break;
+  }
+  document.getElementById('streakCount').textContent = state.streak.count;
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+loadState();
+document.getElementById('streakCount').textContent = state.streak.count;
+render();
+</script>
+</body>
+</html>
