@@ -200,12 +200,11 @@ rt {
 .card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 20px 16px 28px;
+  padding: 20px 16px 16px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
   margin-bottom: 14px;
   position: relative;
-  overflow: hidden;
 }
 .card-tag {
   display: inline-flex;
@@ -625,21 +624,28 @@ rt {
 .empty-state p { font-size: 15px; line-height: 1.7; }
 
 /* ─── FAVORITES ─── */
+.fav-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 0 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
 .fav-btn {
-  position: absolute;
-  bottom: 14px; right: 14px;
-  width: 44px; height: 44px;
-  border-radius: 50%;
+  width: auto;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 20px;
   border: 1.5px solid var(--border);
   background: var(--card);
-  font-size: 20px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
   transition: all 0.15s;
   color: var(--muted);
-  z-index: 5;
 }
-.fav-btn:active { transform: scale(0.85); }
+.fav-btn:active { transform: scale(0.95); }
 .fav-btn.active { border-color: var(--yellow); background: var(--yellow-light); color: #B8860B; }
 .fav-filter-btn {
   padding: 8px 14px;
@@ -839,6 +845,10 @@ function speak(text) {
   u.rate = 0.88;
   window.speechSynthesis.speak(u);
 }
+function speakLine(convIdx, lineIdx) {
+  const conv = state.data.conversation[convIdx];
+  if (conv && conv.lines[lineIdx]) speak(conv.lines[lineIdx].jp);
+}
 function speakSequence(texts, delay = 600) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -896,7 +906,7 @@ function isFavorite(tab, idx) {
 }
 function favBtnHTML(tab, idx) {
   const active = isFavorite(tab, idx) ? ' active' : '';
-  return `<button class="fav-btn${active}" onclick="event.stopPropagation();toggleFavorite('${tab}',${idx})" title="즐겨찾기">★</button>`;
+  return `<div class="fav-bar"><button class="fav-btn${active}" onclick="event.stopPropagation();toggleFavorite('${tab}',${idx})">★ ${active ? '즐겨찾기 해제' : '즐겨찾기'}</button></div>`;
 }
 function toggleFavFilter() {
   favFilterActive = !favFilterActive;
@@ -995,7 +1005,7 @@ async function callClaude(prompt) {
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1200,
+      max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }]
     })
   });
@@ -1140,8 +1150,8 @@ ${used ? `이미 사용된 한자: ${used} — 제외.` : ''}
 
 // 일상 회화
 function promptConversation(existing) {
-  return `당신은 일본어 교육 전문가입니다. 일상 회화 짧은 대화(2~3턴) 1세트를 만들어주세요.
-반드시 순수 JSON만 반환.
+  return `당신은 일본어 교육 전문가입니다. 일상 회화 대화(5~6턴) 1세트를 만들어주세요.
+반드시 순수 JSON만 반환. lines 배열에 최소 5개 이상의 대화를 포함할 것.
 
 {
   "topic": "편의점에서",
@@ -1170,9 +1180,21 @@ function promptConversation(existing) {
     },
     {
       "speaker": "A",
-      "jp": "ありがとうございます！",
-      "ruby_pairs": [{"base":"ありがとうございます！","ruby":""}],
-      "kr": "감사합니다!"
+      "jp": "ありがとうございます。あと、お弁当はどこですか？",
+      "ruby_pairs": [{"base":"ありがとうございます。","ruby":""},{"base":"あと、","ruby":""},{"base":"お","ruby":""},{"base":"弁当","ruby":"べんとう"},{"base":"はどこですか？","ruby":""}],
+      "kr": "감사합니다. 그리고, 도시락은 어디에 있나요?"
+    },
+    {
+      "speaker": "B",
+      "jp": "お弁当は二番目の棚にあります。",
+      "ruby_pairs": [{"base":"お","ruby":""},{"base":"弁当","ruby":"べんとう"},{"base":"は","ruby":""},{"base":"二番目","ruby":"にばんめ"},{"base":"の","ruby":""},{"base":"棚","ruby":"たな"},{"base":"にあります。","ruby":""}],
+      "kr": "도시락은 두 번째 선반에 있습니다."
+    },
+    {
+      "speaker": "A",
+      "jp": "分かりました。ありがとうございます！",
+      "ruby_pairs": [{"base":"分","ruby":"わ"},{"base":"かりました。","ruby":""},{"base":"ありがとうございます！","ruby":""}],
+      "kr": "알겠습니다. 감사합니다!"
     }
   ]
 }`;
@@ -1229,13 +1251,13 @@ function renderKatakana() {
       <div class="kana-char">${a.char}</div>
       <div class="kana-romaji">${a.romaji}</div>
       <div class="kana-sound">${a.korean_sound}</div>
-      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak('${a.char}')">🔊</button>
+      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak(${JSON.stringify(a.char)})">🔊</button>
     </div>
     <div class="kana-single">
       <div class="kana-char">${b.char}</div>
       <div class="kana-romaji">${b.romaji}</div>
       <div class="kana-sound">${b.korean_sound}</div>
-      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak('${b.char}')">🔊</button>
+      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak(${JSON.stringify(b.char)})">🔊</button>
     </div>
   </div>
 
@@ -1251,12 +1273,12 @@ function renderKatakana() {
 
   <div class="section-divider">예시 단어</div>
   ${[a, b].map(ch => ch.examples.map(ex => `
-  <div class="info-row">
+  <div class="info-row" style="padding:12px 0">
     <div>
-      <div class="info-val">${renderRuby(ex.ruby_pairs)}</div>
+      <div class="info-val" style="font-size:19px">${renderRuby(ex.ruby_pairs)}</div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:13px;color:var(--muted)">${ex.meaning}</div>
+      <div style="font-size:15px;color:var(--text);font-weight:500">${ex.meaning}</div>
     </div>
   </div>`).join('')).join('')}
   ${favBtnHTML('katakana', idx)}
@@ -1285,7 +1307,7 @@ function renderVerb() {
     const uid = 'v' + idx;
     html += `<div class="card">
   <div class="card-tag">🎯 기초 동사</div>
-  <button class="tts-btn" onclick="speak('${item.verb}')">🔊</button>
+  <button class="tts-btn" onclick="speak(${JSON.stringify(item.verb)})">🔊</button>
 
   <div class="main-text md" style="text-align:center;margin:8px 0 4px">${renderRuby(item.ruby_pairs)}</div>
   <div class="reading-row">${item.ruby_pairs.map(p => p.ruby || p.base).join('')}</div>
@@ -1309,9 +1331,11 @@ function renderVerb() {
   </table>
 
   <div class="section-divider">예문</div>
-  <div style="font-size:17px;font-weight:700;line-height:1.8;margin-bottom:6px">
+  <div style="font-size:22px;font-weight:700;line-height:2;margin-bottom:8px;text-align:center;padding:12px 0">
     ${renderRuby(item.example.ruby_pairs)}
-    <button class="tts-btn inline" style="vertical-align:middle;margin-left:6px" onclick="speak('${item.example.jp}')">🔊</button>
+  </div>
+  <div style="text-align:center;margin-bottom:10px">
+    <button class="tts-btn inline" onclick="speak(${JSON.stringify(item.example.jp)})">🔊</button>
   </div>
   ${revealBoxHTML('한국어 뜻', item.example.kr, uid + '_kr')}
   ${favBtnHTML('verb', idx)}
@@ -1347,11 +1371,11 @@ function renderSentence() {
     const uid = 's' + idx;
     html += `<div class="card">
   <div class="card-tag">💬 한 문장</div>
-  <button class="tts-btn" onclick="speak('${item.sentence}')">🔊</button>
+  <button class="tts-btn" onclick="speak(${JSON.stringify(item.sentence)})">🔊</button>
 
   <span class="badge badge-coral" style="margin-bottom:12px;display:inline-block">${item.level || '초급'}</span>
 
-  <div style="font-size:20px;font-weight:700;line-height:1.9;margin-bottom:4px">
+  <div style="font-size:24px;font-weight:700;line-height:2;margin-bottom:8px;text-align:center;padding:12px 0">
     ${renderRuby(item.ruby_pairs)}
   </div>
 
@@ -1400,7 +1424,7 @@ function renderKanji() {
     const uid = 'kj' + idx;
     html += `<div class="card">
   <div class="card-tag">🈳 기초 한자</div>
-  <button class="tts-btn" onclick="speak('${item.kanji}')">🔊</button>
+  <button class="tts-btn" onclick="speak(${JSON.stringify(item.kanji)})">🔊</button>
 
   <div class="kanji-big">${item.kanji}</div>
   <div class="pill-row" style="justify-content:center;margin:12px 0">
@@ -1412,11 +1436,15 @@ function renderKanji() {
   ${revealBoxHTML('뜻', item.meaning, uid + '_meaning')}
 
   <div class="section-divider">관련 단어</div>
-  ${item.related.map(r => `<div class="info-row">
+  ${item.related.map(r => `<div class="info-row" style="padding:12px 0">
     <div>
-      <div class="info-val" style="font-size:17px">${renderRuby(r.ruby_pairs)}</div>
+      <div class="info-val" style="font-size:20px">${renderRuby(r.ruby_pairs)}</div>
+      <div style="font-size:13px;color:var(--coral);margin-top:2px">${r.ruby_pairs.map(p => p.ruby || p.base).join('')}</div>
     </div>
-    <div style="text-align:right;font-size:13px;color:var(--muted)">${r.meaning}</div>
+    <div style="text-align:right">
+      <div style="font-size:15px;color:var(--text);font-weight:500">${r.meaning}</div>
+      <button class="tts-btn inline" style="margin-left:auto;margin-top:4px;width:32px;height:32px;font-size:14px" onclick="speak(${JSON.stringify(r.word)})">🔊</button>
+    </div>
   </div>`).join('')}
   ${favBtnHTML('kanji', idx)}
 </div>`;
@@ -1441,25 +1469,32 @@ function renderConversation() {
   if (!item || (filtered && filtered.length === 0)) {
     html += `<div class="empty-state"><div class="big-icon">🗣️</div><p>일상 회화를 학습해봐요!</p></div>`;
   } else {
-    const bubblesHTML = item.lines.map(line => {
+    const bubblesHTML = item.lines.map((line, li) => {
       const isB = line.speaker === 'B';
       const rubyText = renderRuby(line.ruby_pairs);
       return `<div class="bubble-wrap ${isB ? 'b' : ''}">
         <div class="bubble-avatar ${isB ? 'avatar-b' : 'avatar-a'}">${isB ? '👦' : '👧'}</div>
         <div class="bubble ${isB ? 'bubble-b' : 'bubble-a'}">
-          <div class="bubble-jp">${rubyText}</div>
-          <div class="bubble-sub">${line.kr}</div>
+          <div class="bubble-jp" style="font-size:17px">${rubyText}</div>
+          <div class="bubble-sub" style="font-size:13px">${line.kr}</div>
+          <button onclick="event.stopPropagation();speakLine(${idx},${li})" style="margin-top:6px;padding:5px 10px;border-radius:16px;background:transparent;border:1px solid ${isB ? '#B2EBE8' : '#FFD0D0'};color:${isB ? 'var(--blue-dark)' : 'var(--coral)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px">
+            🔊 듣기
+          </button>
         </div>
       </div>`;
     }).join('');
 
+    const allJpTexts = JSON.stringify(item.lines.map(l => l.jp));
+
     html += `<div class="card">
   <div class="card-tag">🗣️ 일상 회화</div>
-  <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:16px">📍 ${item.topic}</div>
+  <div style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:16px">📍 ${item.topic}</div>
   <div class="dialogue">${bubblesHTML}</div>
-  <button onclick="speakSequence(${JSON.stringify(item.lines.map(l => l.jp))})" style="margin-top:14px;padding:10px 18px;border-radius:var(--radius-sm);background:var(--blue-light);border:1px solid #B2EBE8;color:var(--blue-dark);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
-    🔊 전체 회화 듣기
-  </button>
+  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+    <button onclick="speakSequence(${allJpTexts.replace(/"/g, '&quot;')})" style="flex:1;min-width:140px;padding:12px 16px;border-radius:var(--radius-sm);background:var(--blue-light);border:1px solid #B2EBE8;color:var(--blue-dark);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px">
+      🔊 전체 회화 듣기
+    </button>
+  </div>
   ${favBtnHTML('conversation', idx)}
 </div>`;
   }
@@ -1475,42 +1510,70 @@ function buildQuizQuestions() {
   const pool = [];
   const d = state.data;
 
-  // 카타카나
+  // 카타카나 — 양방향
   d.katakana.forEach(item => {
     item.pair.forEach(ch => {
-      pool.push({ q: `카타카나 「${ch.char}」의 발음은?`, a: ch.korean_sound, exp: `${ch.char} = ${ch.romaji} (${ch.korean_sound})` });
-      pool.push({ q: `카타카나 「${ch.char}」의 로마자 표기는?`, a: ch.romaji, exp: `${ch.char} = ${ch.romaji}` });
+      pool.push({ type:'choice', q: `카타카나 「${ch.char}」의 발음은?`, a: ch.korean_sound, exp: `${ch.char} = ${ch.romaji} (${ch.korean_sound})`, pool_group:'kata_sound' });
+      pool.push({ type:'choice', q: `「${ch.korean_sound}」에 해당하는 카타카나는?`, a: ch.char, exp: `${ch.korean_sound} = ${ch.char} (${ch.romaji})`, pool_group:'kata_char' });
     });
   });
 
-  // 동사
+  // 동사 — 뜻→동사, 동사→뜻
   d.verb.forEach(item => {
-    pool.push({ q: `동사 「${item.verb}」의 뜻은?`, a: item.meaning, exp: `${item.verb} (${item.ruby_pairs.map(p=>p.ruby||p.base).join('')}) = ${item.meaning}` });
+    pool.push({ type:'choice', q: `동사 「${item.verb}」의 뜻은?`, a: item.meaning, exp: `${item.verb} (${item.ruby_pairs.map(p=>p.ruby||p.base).join('')}) = ${item.meaning}`, pool_group:'verb_meaning' });
+    pool.push({ type:'choice', q: `「${item.meaning}」에 해당하는 일본어 동사는?`, a: item.verb, exp: `${item.meaning} = ${item.verb}`, pool_group:'verb_word' });
     const masu = item.conjugations.find(c => c.form === 'ます형');
-    if (masu) pool.push({ q: `「${item.verb}」의 ます형은?`, a: masu.value, exp: `${item.verb} → ${masu.value} (${masu.reading})` });
+    if (masu) pool.push({ type:'choice', q: `「${item.verb}」의 ます형은?`, a: masu.value, exp: `${item.verb} → ${masu.value} (${masu.reading})`, pool_group:'verb_conj' });
   });
 
-  // 문장
+  // 문장 — 뜻 맞추기 + 토큰 양방향
   d.sentence.forEach(item => {
-    pool.push({ q: `「${item.sentence}」의 한국어 뜻은?`, a: item.meaning, exp: item.grammar });
+    pool.push({ type:'choice', q: `「${item.sentence}」의 한국어 뜻은?`, a: item.meaning, exp: item.grammar, pool_group:'sent_meaning' });
+
+    // 문장 배열 퀴즈
+    if (item.tokens && item.tokens.length >= 3 && item.tokens.length <= 8) {
+      const words = item.tokens.map(t => t.text);
+      pool.push({ type:'arrange', q: '다음 단어를 올바른 순서로 배열하세요', words: words, answer_sentence: item.sentence, exp: `정답: ${item.sentence} (${item.meaning})`, pool_group:'arrange' });
+    }
+
     (item.tokens || []).filter(t => t.type === '명사' || t.type === '동사').forEach(tok => {
-      pool.push({ q: `「${tok.text}」의 뜻은?`, a: tok.meaning, exp: `${tok.text} (${tok.reading}) = ${tok.meaning} [${tok.type}]` });
+      pool.push({ type:'choice', q: `「${tok.text}」의 뜻은?`, a: tok.meaning, exp: `${tok.text} (${tok.reading}) = ${tok.meaning} [${tok.type}]`, pool_group:'tok_meaning' });
+      pool.push({ type:'choice', q: `「${tok.meaning}」에 해당하는 일본어는?`, a: tok.text, exp: `${tok.meaning} = ${tok.text} (${tok.reading})`, pool_group:'tok_word' });
     });
   });
 
-  // 한자
+  // 한자 — 양방향
   d.kanji.forEach(item => {
-    pool.push({ q: `한자 「${item.kanji}」의 뜻은?`, a: item.meaning, exp: `${item.kanji} : 음독 ${item.onyomi}, 훈독 ${item.kunyomi}` });
-    pool.push({ q: `한자 「${item.kanji}」의 음독은?`, a: item.onyomi, exp: `${item.kanji}의 음독 = ${item.onyomi}` });
+    pool.push({ type:'choice', q: `한자 「${item.kanji}」의 뜻은?`, a: item.meaning, exp: `${item.kanji} : 음독 ${item.onyomi}, 훈독 ${item.kunyomi}`, pool_group:'kanji_meaning' });
+    pool.push({ type:'choice', q: `「${item.meaning}」에 해당하는 한자는?`, a: item.kanji, exp: `${item.meaning} = ${item.kanji}`, pool_group:'kanji_char' });
+    pool.push({ type:'choice', q: `한자 「${item.kanji}」의 음독은?`, a: item.onyomi, exp: `${item.kanji}의 음독 = ${item.onyomi}`, pool_group:'kanji_onyomi' });
   });
 
   if (pool.length < 4) return null;
 
-  const answers = pool.map(p => p.a);
+  // 선택형 답안 생성
+  const allAnswersByGroup = {};
+  pool.filter(p => p.type === 'choice').forEach(p => {
+    if (!allAnswersByGroup[p.pool_group]) allAnswersByGroup[p.pool_group] = [];
+    allAnswersByGroup[p.pool_group].push(p.a);
+  });
+  const allAnswers = pool.filter(p => p.type === 'choice').map(p => p.a);
+
   const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 10);
 
   return shuffled.map(q => {
-    const wrongs = answers.filter(a => a !== q.a).sort(() => Math.random() - 0.5).slice(0, 3);
+    if (q.type === 'arrange') {
+      // 문장 배열 — 단어를 섞어서 제공
+      const shuffledWords = [...q.words].sort(() => Math.random() - 0.5);
+      return { ...q, shuffledWords };
+    }
+    // 같은 그룹에서 오답 먼저 찾고, 부족하면 전체에서
+    let sameGroup = (allAnswersByGroup[q.pool_group] || []).filter(a => a !== q.a);
+    let wrongs = sameGroup.sort(() => Math.random() - 0.5).slice(0, 3);
+    if (wrongs.length < 3) {
+      const more = allAnswers.filter(a => a !== q.a && !wrongs.includes(a)).sort(() => Math.random() - 0.5).slice(0, 3 - wrongs.length);
+      wrongs = [...wrongs, ...more];
+    }
     const opts = [q.a, ...wrongs].sort(() => Math.random() - 0.5);
     return { ...q, opts };
   });
@@ -1566,19 +1629,57 @@ function renderQuiz() {
   const answered = quizState.answered;
   const pct = Math.round(ci / qs.length * 100);
 
-  const optsHTML = q.opts.map(opt => {
-    let cls = 'quiz-opt';
-    if (answered) {
-      if (opt === q.a) cls += ' correct';
-      else if (opt === quizState.chosen) cls += ' wrong';
-      cls += ' disabled';
-    }
-    return `<button class="${cls}" onclick="answerQuiz(this, '${opt.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${opt}</button>`;
-  }).join('');
+  let questionBody = '';
+
+  if (q.type === 'arrange') {
+    // 문장 배열 퀴즈
+    if (!quizState.arrangeSelected) quizState.arrangeSelected = [];
+    const selected = quizState.arrangeSelected;
+    const remaining = q.shuffledWords.filter((w,i) => !selected.includes(i));
+
+    const selectedHTML = selected.length > 0
+      ? selected.map((si, pos) => `<span onclick="removeArrangeWord(${pos})" style="display:inline-block;padding:8px 12px;margin:3px;border-radius:var(--radius-xs);background:var(--coral-light);border:1px solid var(--coral);color:var(--coral);font-size:16px;font-weight:700;cursor:pointer">${q.shuffledWords[si]}</span>`).join('')
+      : '<span style="color:var(--muted);font-size:14px">👆 아래 단어를 순서대로 터치하세요</span>';
+
+    const wordsHTML = q.shuffledWords.map((w, i) => {
+      const used = selected.includes(i);
+      return `<button onclick="selectArrangeWord(${i})" style="padding:10px 14px;margin:3px;border-radius:var(--radius-xs);border:1.5px solid ${used ? '#EEE' : 'var(--border)'};background:${used ? '#F5F5F5' : 'var(--card)'};color:${used ? '#CCC' : 'var(--text)'};font-size:16px;font-weight:600;cursor:${used ? 'default' : 'pointer'};min-height:44px" ${used ? 'disabled' : ''}>${w}</button>`;
+    }).join('');
+
+    const canSubmit = selected.length === q.shuffledWords.length && !answered;
+
+    questionBody = `<div class="quiz-question">
+      <div class="quiz-q-text">${q.q}</div>
+    </div>
+    <div style="min-height:56px;padding:12px;background:#FAFAFA;border-radius:var(--radius-sm);border:1.5px dashed var(--border);margin-bottom:12px;text-align:center;line-height:2.2">
+      ${selectedHTML}
+    </div>
+    <div style="text-align:center;margin-bottom:12px;line-height:2">
+      ${wordsHTML}
+    </div>
+    ${canSubmit ? `<button class="quiz-next-btn" onclick="submitArrange()" style="margin-bottom:12px">확인하기 ✓</button>` : ''}`;
+  } else {
+    // 선택형 퀴즈
+    const optsHTML = q.opts.map(opt => {
+      let cls = 'quiz-opt';
+      if (answered) {
+        if (opt === q.a) cls += ' correct';
+        else if (opt === quizState.chosen) cls += ' wrong';
+        cls += ' disabled';
+      }
+      const safeOpt = opt.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      return `<button class="${cls}" onclick="answerQuiz(this, '${safeOpt}')">${opt}</button>`;
+    }).join('');
+
+    questionBody = `<div class="quiz-question">
+      <div class="quiz-q-text" style="font-size:20px">${q.q}</div>
+    </div>
+    <div class="quiz-options">${optsHTML}</div>`;
+  }
 
   const explanationHTML = answered ? `
     <div class="quiz-explanation">
-      ${quizState.chosen === q.a ? '✅ 정답!' : `❌ 오답! 정답은 <strong>${q.a}</strong>`}<br>
+      ${quizState.correct ? '✅ 정답!' : `❌ 오답! 정답은 <strong>${q.a || q.answer_sentence}</strong>`}<br>
       <span style="font-size:13px;color:#795548;margin-top:4px;display:block">${q.exp || ''}</span>
     </div>
     <button class="quiz-next-btn" onclick="nextQuiz()">
@@ -1590,24 +1691,43 @@ function renderQuiz() {
     <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
     <div style="font-size:13px;color:var(--muted)">현재 점수 ${quizState.score}점</div>
   </div>
-  <div class="quiz-question">
-    <div class="quiz-q-text">${q.q}</div>
-  </div>
-  <div class="quiz-options">${optsHTML}</div>
+  ${questionBody}
   ${explanationHTML}`;
 }
 
 function startQuiz() {
   const questions = buildQuizQuestions();
   if (!questions) return showToast('학습 데이터가 부족해요. 더 학습해주세요!');
-  quizState = { questions, currentIdx: 0, score: 0, answered: false, chosen: null, done: false };
+  quizState = { questions, currentIdx: 0, score: 0, answered: false, chosen: null, correct: false, done: false, arrangeSelected: [] };
   render();
 }
 function answerQuiz(el, chosen) {
   if (!quizState || quizState.answered) return;
   quizState.answered = true;
   quizState.chosen = chosen;
-  if (chosen === quizState.questions[quizState.currentIdx].a) quizState.score++;
+  quizState.correct = (chosen === quizState.questions[quizState.currentIdx].a);
+  if (quizState.correct) quizState.score++;
+  render();
+}
+function selectArrangeWord(idx) {
+  if (!quizState || quizState.answered) return;
+  if (quizState.arrangeSelected.includes(idx)) return;
+  quizState.arrangeSelected.push(idx);
+  render();
+}
+function removeArrangeWord(pos) {
+  if (!quizState || quizState.answered) return;
+  quizState.arrangeSelected.splice(pos, 1);
+  render();
+}
+function submitArrange() {
+  if (!quizState || quizState.answered) return;
+  const q = quizState.questions[quizState.currentIdx];
+  const userAnswer = quizState.arrangeSelected.map(i => q.shuffledWords[i]).join('');
+  const correctAnswer = q.words.join('');
+  quizState.answered = true;
+  quizState.correct = (userAnswer === correctAnswer);
+  if (quizState.correct) quizState.score++;
   render();
 }
 function nextQuiz() {
@@ -1616,6 +1736,8 @@ function nextQuiz() {
     quizState.currentIdx++;
     quizState.answered = false;
     quizState.chosen = null;
+    quizState.correct = false;
+    quizState.arrangeSelected = [];
     render();
   } else {
     quizState.done = true;
