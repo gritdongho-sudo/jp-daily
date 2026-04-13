@@ -669,6 +669,92 @@ rt {
   color: #B8860B;
 }
 
+/* ─── CALENDAR ─── */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.cal-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  padding: 6px 0;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: var(--radius-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  position: relative;
+  border: 1px solid transparent;
+}
+.cal-day.empty { visibility: hidden; }
+.cal-day.today { border: 1.5px solid var(--coral); }
+.cal-day.has-study { background: var(--coral-light); color: var(--coral); }
+.cal-day.has-study.high { background: var(--coral); color: #fff; }
+.cal-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--coral);
+  position: absolute;
+  bottom: 3px;
+}
+.cal-day.has-study.high .cal-dot { background: #fff; }
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cal-nav-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-nav-btn:active { background: var(--coral-light); }
+.cal-month {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+}
+.cal-detail {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 14px;
+  margin-top: 8px;
+}
+.cal-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.cal-detail-row:last-child { border-bottom: none; }
+.cal-stat-card {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 16px;
+  text-align: center;
+}
+.cal-stat-num { font-size: 32px; font-weight: 900; color: var(--coral); }
+.cal-stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+
 /* ─── MOBILE RESPONSIVE ─── */
 @media (max-width: 380px) {
   .header { padding: 10px 12px; }
@@ -742,6 +828,7 @@ body { overscroll-behavior-y: contain; }
   <button class="tab-btn" onclick="switchTab('kanji', this)">기초 한자</button>
   <button class="tab-btn" onclick="switchTab('conversation', this)">일상 회화</button>
   <button class="tab-btn" onclick="switchTab('quiz', this)">퀴즈 🎯</button>
+  <button class="tab-btn" onclick="switchTab('calendar', this)">학습 기록 📅</button>
 </div>
 
 <!-- ─── MAIN CONTENT ─── -->
@@ -767,6 +854,7 @@ function loadState() {
   if (!state.streak) state.streak = { count:0, lastDate:'' };
   if (!state.apiKey) state.apiKey = '';
   if (!state.favorites) state.favorites = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+  if (!state.history) state.history = {};  // { '2026-04-13': { katakana:1, verb:2, ... } }
 }
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -806,11 +894,18 @@ function saveSettings() {
   document.getElementById('settingsModal').style.display = 'none';
   showToast('저장되었습니다 ✓');
 }
+function recordStudy(tab) {
+  const today = new Date().toISOString().slice(0,10);
+  if (!state.history[today]) state.history[today] = {};
+  state.history[today][tab] = (state.history[today][tab] || 0) + 1;
+  saveState();
+}
 function resetAllData() {
   if (!confirm('모든 학습 데이터를 삭제할까요?')) return;
   state.data = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
   state.idx = { katakana:0, verb:0, sentence:0, kanji:0, conversation:0 };
   state.favorites = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+  state.history = {};
   favFilterActive = false;
   saveState();
   document.getElementById('settingsModal').style.display = 'none';
@@ -1101,7 +1196,9 @@ ${used ? `이미 사용된 동사: ${used} — 제외.` : ''}
 
 // 한 문장 (토큰 분해 포함)
 function promptSentence(existing) {
+  const used = existing.map(x => x.sentence).join(', ');
   return `당신은 일본어 교육 전문가입니다. 초급 학습자에게 유용한 짧은 일본어 문장 1개를 만들어주세요.
+${used ? `이미 사용된 문장: ${used} — 반드시 다른 새 문장을 만들 것.` : ''}
 반드시 순수 JSON만 반환.
 
 {
@@ -1150,7 +1247,9 @@ ${used ? `이미 사용된 한자: ${used} — 제외.` : ''}
 
 // 일상 회화
 function promptConversation(existing) {
+  const usedTopics = existing.map(x => x.topic).join(', ');
   return `당신은 일본어 교육 전문가입니다. 일상 회화 대화(5~6턴) 1세트를 만들어주세요.
+${usedTopics ? `이미 사용된 주제: ${usedTopics} — 반드시 다른 새 주제로 만들 것.` : ''}
 반드시 순수 JSON만 반환. lines 배열에 최소 5개 이상의 대화를 포함할 것.
 
 {
@@ -1218,6 +1317,7 @@ async function fetchNew(tab) {
 
     state.data[tab].push(result);
     state.idx[tab] = state.data[tab].length - 1;
+    recordStudy(tab);
     saveState();
     render();
   } catch(e) {
@@ -1337,7 +1437,9 @@ function renderVerb() {
   <div style="text-align:center;margin-bottom:10px">
     <button class="tts-btn inline" onclick="speak(${JSON.stringify(item.example.jp)})">🔊</button>
   </div>
-  ${revealBoxHTML('한국어 뜻', item.example.kr, uid + '_kr')}
+  <div style="background:var(--blue-light);border:1px solid #B2EBE8;border-radius:var(--radius-sm);padding:12px 16px;font-size:15px;font-weight:600;color:var(--blue-dark);text-align:center;line-height:1.6">
+    ${item.example.kr}
+  </div>
   ${favBtnHTML('verb', idx)}
 </div>`;
   }
@@ -1746,6 +1848,140 @@ function nextQuiz() {
 }
 
 /* ═══════════════════════════════════════════
+   CALENDAR / HISTORY
+═══════════════════════════════════════════ */
+let calYear, calMonth;
+(function() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+})();
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  render();
+}
+
+const TAB_LABELS = { katakana:'カタカナ', verb:'동사', sentence:'문장', kanji:'한자', conversation:'회화' };
+const TAB_ICONS = { katakana:'🔤', verb:'🎯', sentence:'💬', kanji:'🈳', conversation:'🗣️' };
+
+function renderCalendar() {
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const dayNames = ['일','월','화','수','목','금','토'];
+
+  // stats for this month
+  let monthTotal = 0;
+  let studyDays = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const rec = state.history[dateStr];
+    if (rec) {
+      const dayTotal = Object.values(rec).reduce((s,v) => s+v, 0);
+      if (dayTotal > 0) { monthTotal += dayTotal; studyDays++; }
+    }
+  }
+
+  // this week favorites count
+  const favTotal = Object.values(state.favorites).reduce((s,a) => s+a.length, 0);
+
+  let html = `
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+    <div class="cal-stat-card">
+      <div class="cal-stat-num">${studyDays}</div>
+      <div class="cal-stat-label">이번달 학습일</div>
+    </div>
+    <div class="cal-stat-card">
+      <div class="cal-stat-num">${monthTotal}</div>
+      <div class="cal-stat-label">이번달 학습량</div>
+    </div>
+    <div class="cal-stat-card">
+      <div class="cal-stat-num" style="color:var(--yellow)">${favTotal}</div>
+      <div class="cal-stat-label">즐겨찾기 항목</div>
+    </div>
+  </div>`;
+
+  // calendar navigation
+  html += `<div class="cal-nav">
+    <button class="cal-nav-btn" onclick="calNav(-1)">◀</button>
+    <div class="cal-month">${calYear}년 ${monthNames[calMonth]}</div>
+    <button class="cal-nav-btn" onclick="calNav(1)">▶</button>
+  </div>`;
+
+  // day headers
+  html += `<div class="cal-grid">`;
+  dayNames.forEach(d => { html += `<div class="cal-header">${d}</div>`; });
+
+  // empty cells before first day
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+
+  // days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const rec = state.history[dateStr];
+    const dayTotal = rec ? Object.values(rec).reduce((s,v) => s+v, 0) : 0;
+    const isToday = dateStr === todayStr;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (dayTotal > 0) cls += ' has-study';
+    if (dayTotal >= 5) cls += ' high';
+
+    html += `<div class="${cls}" onclick="showDayDetail('${dateStr}')">
+      ${d}
+      ${dayTotal > 0 ? '<div class="cal-dot"></div>' : ''}
+    </div>`;
+  }
+  html += `</div>`;
+
+  // selected day detail
+  html += `<div id="calDetail"></div>`;
+
+  // today's detail by default
+  html += `<script>showDayDetail('${todayStr}')<\/script>`;
+
+  return html;
+}
+
+function showDayDetail(dateStr) {
+  const el = document.getElementById('calDetail');
+  if (!el) return;
+  const rec = state.history[dateStr];
+  const parts = dateStr.split('-');
+  const label = `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+
+  if (!rec || Object.values(rec).reduce((s,v)=>s+v,0) === 0) {
+    el.innerHTML = `<div class="cal-detail">
+      <div style="text-align:center;color:var(--muted);padding:12px;font-size:14px">
+        📅 ${label} — 학습 기록이 없습니다
+      </div>
+    </div>`;
+    return;
+  }
+
+  let rows = '';
+  Object.entries(rec).forEach(([tab, count]) => {
+    rows += `<div class="cal-detail-row">
+      <span>${TAB_ICONS[tab] || ''} ${TAB_LABELS[tab] || tab}</span>
+      <span style="font-weight:700;color:var(--coral)">${count}개</span>
+    </div>`;
+  });
+  const total = Object.values(rec).reduce((s,v)=>s+v,0);
+  el.innerHTML = `<div class="cal-detail">
+    <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--text)">📅 ${label} 학습 기록</div>
+    ${rows}
+    <div class="cal-detail-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:10px">
+      <span style="font-weight:700">총 학습량</span>
+      <span style="font-weight:800;color:var(--coral);font-size:16px">${total}개</span>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════
    TAB SWITCH & RENDER
 ═══════════════════════════════════════════ */
 function switchTab(tab, el) {
@@ -1765,6 +2001,7 @@ function render() {
     case 'kanji':        el.innerHTML = renderKanji(); break;
     case 'conversation': el.innerHTML = renderConversation(); break;
     case 'quiz':         el.innerHTML = renderQuiz(); break;
+    case 'calendar':     el.innerHTML = renderCalendar(); break;
   }
   document.getElementById('streakCount').textContent = state.streak.count;
 }
