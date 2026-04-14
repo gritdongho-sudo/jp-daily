@@ -954,11 +954,31 @@ function getJaVoice() {
     || null;
 }
 
+// TTS용 텍스트 저장소 (onclick 속성 인코딩 문제 회피)
+const _ttsTexts = [];
+function ttsId(text) {
+  let idx = _ttsTexts.indexOf(text);
+  if (idx === -1) { idx = _ttsTexts.length; _ttsTexts.push(text); }
+  return idx;
+}
+function ttsBtn(text, inline) {
+  const id = ttsId(text);
+  if (inline) return `<button class="tts-btn inline" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+  return `<button class="tts-btn" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+}
+function ttsBtnSmall(text) {
+  const id = ttsId(text);
+  return `<button class="tts-btn inline" style="width:32px;height:32px;font-size:14px" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+}
+function ttsBtnMedium(text) {
+  const id = ttsId(text);
+  return `<button class="tts-btn inline" style="width:34px;height:34px;font-size:15px" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+}
+
 function speak(text) {
   if (!text) return;
   if (!window.speechSynthesis) return showToast('TTS를 지원하지 않는 브라우저입니다');
 
-  // iOS Safari: cancel 후 약간의 지연 필요
   speechSynthesis.cancel();
 
   const doSpeak = () => {
@@ -973,13 +993,25 @@ function speak(text) {
     speechSynthesis.speak(u);
   };
 
-  // iOS 워크어라운드: cancel 직후 speak하면 무시되는 버그
+  // iOS 워크어라운드: cancel 직후 speak하면 무시됨
   setTimeout(doSpeak, 100);
 }
 
 function speakLine(convIdx, lineIdx) {
   const conv = state.data.conversation[convIdx];
   if (conv && conv.lines[lineIdx]) speak(conv.lines[lineIdx].jp);
+}
+
+// 전체 회화 듣기용 ID 저장소
+const _seqTexts = [];
+function seqId(texts) {
+  const idx = _seqTexts.length;
+  _seqTexts.push(texts);
+  return idx;
+}
+
+function speakSeqById(id) {
+  speakSequence(_seqTexts[id]);
 }
 
 function speakSequence(texts, delay = 800) {
@@ -1396,13 +1428,13 @@ function renderKatakana() {
       <div class="kana-char">${a.char}</div>
       <div class="kana-romaji">${a.romaji}</div>
       <div class="kana-sound">${a.korean_sound}</div>
-      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak(${JSON.stringify(a.char)})">🔊</button>
+      <div style="margin:8px auto 0">${ttsBtn(a.char, true)}</div>
     </div>
     <div class="kana-single">
       <div class="kana-char">${b.char}</div>
       <div class="kana-romaji">${b.romaji}</div>
       <div class="kana-sound">${b.korean_sound}</div>
-      <button class="tts-btn inline" style="margin:8px auto 0" onclick="speak(${JSON.stringify(b.char)})">🔊</button>
+      <div style="margin:8px auto 0">${ttsBtn(b.char, true)}</div>
     </div>
   </div>
 
@@ -1452,7 +1484,7 @@ function renderVerb() {
     const uid = 'v' + idx;
     html += `<div class="card">
   <div class="card-tag">🎯 기초 동사</div>
-  <button class="tts-btn" onclick="speak(${JSON.stringify(item.verb)})">🔊</button>
+  ${ttsBtn(item.verb, false)}
 
   <div class="main-text md" style="text-align:center;margin:8px 0 4px">${renderRuby(item.ruby_pairs)}</div>
   <div class="reading-row">${item.ruby_pairs.map(p => p.ruby || p.base).join('')}</div>
@@ -1480,7 +1512,7 @@ function renderVerb() {
     ${renderRuby(item.example.ruby_pairs)}
   </div>
   <div style="text-align:center;margin-bottom:10px">
-    <button class="tts-btn inline" onclick="speak(${JSON.stringify(item.example.jp)})">🔊</button>
+    ${ttsBtn(item.example.jp, true)}
   </div>
   <div style="background:var(--blue-light);border:1px solid #B2EBE8;border-radius:var(--radius-sm);padding:12px 16px;font-size:15px;font-weight:600;color:var(--blue-dark);text-align:center;line-height:1.6">
     ${item.example.kr}
@@ -1518,7 +1550,7 @@ function renderSentence() {
     const uid = 's' + idx;
     html += `<div class="card">
   <div class="card-tag">💬 한 문장</div>
-  <button class="tts-btn" onclick="speak(${JSON.stringify(item.sentence)})">🔊</button>
+  ${ttsBtn(item.sentence, false)}
 
   <span class="badge badge-coral" style="margin-bottom:12px;display:inline-block">${item.level || '초급'}</span>
 
@@ -1571,7 +1603,7 @@ function renderKanji() {
     const uid = 'kj' + idx;
     html += `<div class="card">
   <div class="card-tag">🈳 기초 한자</div>
-  <button class="tts-btn" onclick="speak(${JSON.stringify(item.kanji)})">🔊</button>
+  ${ttsBtn(item.kanji, false)}
 
   <div class="kanji-big">${item.kanji}</div>
   <div class="pill-row" style="justify-content:center;margin:12px 0">
@@ -1590,7 +1622,7 @@ function renderKanji() {
     </div>
     <div style="text-align:right">
       <div style="font-size:15px;color:var(--text);font-weight:500">${r.meaning}</div>
-      <button class="tts-btn inline" style="margin-left:auto;margin-top:4px;width:32px;height:32px;font-size:14px" onclick="speak(${JSON.stringify(r.word)})">🔊</button>
+      <div style="margin-left:auto;margin-top:4px">${ttsBtnSmall(r.word)}</div>
     </div>
   </div>`).join('')}
   ${favBtnHTML('kanji', idx)}
@@ -1619,26 +1651,27 @@ function renderConversation() {
     const bubblesHTML = item.lines.map((line, li) => {
       const isB = line.speaker === 'B';
       const rubyText = renderRuby(line.ruby_pairs);
+      const lineId = ttsId(line.jp);
       return `<div class="bubble-wrap ${isB ? 'b' : ''}">
         <div class="bubble-avatar ${isB ? 'avatar-b' : 'avatar-a'}">${isB ? '👦' : '👧'}</div>
         <div class="bubble ${isB ? 'bubble-b' : 'bubble-a'}">
           <div class="bubble-jp" style="font-size:17px">${rubyText}</div>
           <div class="bubble-sub" style="font-size:13px">${line.kr}</div>
-          <button onclick="event.stopPropagation();speakLine(${idx},${li})" style="margin-top:6px;padding:5px 10px;border-radius:16px;background:transparent;border:1px solid ${isB ? '#B2EBE8' : '#FFD0D0'};color:${isB ? 'var(--blue-dark)' : 'var(--coral)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px">
+          <button onclick="event.stopPropagation();speak(_ttsTexts[${lineId}])" style="margin-top:6px;padding:5px 10px;border-radius:16px;background:transparent;border:1px solid ${isB ? '#B2EBE8' : '#FFD0D0'};color:${isB ? 'var(--blue-dark)' : 'var(--coral)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:32px">
             🔊 듣기
           </button>
         </div>
       </div>`;
     }).join('');
 
-    const allJpTexts = JSON.stringify(item.lines.map(l => l.jp));
+    const sid = seqId(item.lines.map(l => l.jp));
 
     html += `<div class="card">
   <div class="card-tag">🗣️ 일상 회화</div>
   <div style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:16px">📍 ${item.topic}</div>
   <div class="dialogue">${bubblesHTML}</div>
   <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-    <button onclick="speakSequence(${allJpTexts.replace(/"/g, '&quot;')})" style="flex:1;min-width:140px;padding:12px 16px;border-radius:var(--radius-sm);background:var(--blue-light);border:1px solid #B2EBE8;color:var(--blue-dark);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px">
+    <button onclick="speakSeqById(${sid})" style="flex:1;min-width:140px;padding:12px 16px;border-radius:var(--radius-sm);background:var(--blue-light);border:1px solid #B2EBE8;color:var(--blue-dark);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px">
       🔊 전체 회화 듣기
     </button>
   </div>
@@ -2136,7 +2169,7 @@ function renderCultureCard() {
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-size:22px;font-weight:800;color:var(--text)">${c.jp_word}</span>
         <span style="font-size:14px;color:var(--coral);font-weight:600">${c.jp_reading}</span>
-        <button class="tts-btn inline" style="width:34px;height:34px;font-size:15px" onclick="speak(${JSON.stringify(c.jp_word)})">🔊</button>
+        ${ttsBtnMedium(c.jp_word)}
       </div>
       <div style="font-size:14px;color:#5B21B6;margin-top:4px">${c.jp_meaning}</div>
     </div>
