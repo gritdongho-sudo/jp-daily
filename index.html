@@ -755,6 +755,67 @@ rt {
 .cal-stat-num { font-size: 32px; font-weight: 900; color: var(--coral); }
 .cal-stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 600; }
 
+/* ─── SPLASH SCREEN ─── */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #FFB7C5 0%, #FF8FAB 30%, #FF6B6B 70%, #E85D5D 100%);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.splash.fade-out {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+.splash-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.splash-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+.splash-kanji {
+  font-size: 80px;
+  color: rgba(255,255,255,0.2);
+  font-weight: 900;
+  position: absolute;
+  top: 15%;
+  right: 10%;
+}
+/* 벚꽃 파티클 */
+.petal {
+  position: absolute;
+  width: 12px; height: 12px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50% 0 50% 0;
+  animation: fall linear infinite;
+  pointer-events: none;
+}
+@keyframes fall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+/* 도쿄 스카이라인 실루엣 */
+.skyline {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 120px;
+  opacity: 0.15;
+}
+
 /* ─── MOBILE RESPONSIVE ─── */
 @media (max-width: 380px) {
   .header { padding: 10px 12px; }
@@ -788,6 +849,42 @@ body { overscroll-behavior-y: contain; }
 </style>
 </head>
 <body>
+
+<!-- ─── SPLASH SCREEN ─── -->
+<div class="splash" id="splashScreen">
+  <div class="splash-kanji">桜</div>
+  <div style="font-size:64px;margin-bottom:16px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.1))">🌸</div>
+  <div class="splash-title">JP Daily</div>
+  <div class="splash-sub">매일 조금씩, 일본어 학습</div>
+  <div style="margin-top:24px;display:flex;gap:6px">
+    <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);animation:pulse 1.2s infinite"></div>
+    <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);animation:pulse 1.2s 0.2s infinite"></div>
+    <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);animation:pulse 1.2s 0.4s infinite"></div>
+  </div>
+  <!-- Tokyo skyline silhouette -->
+  <svg class="skyline" viewBox="0 0 480 120" preserveAspectRatio="xMidYMax slice">
+    <path d="M0,120 L0,90 L20,90 L20,70 L30,70 L30,90 L50,90 L50,60 L55,40 L60,60 L60,90 L80,90 L80,75 L95,75 L95,55 L100,45 L105,55 L105,75 L120,75 L120,90 L140,90 L140,50 L145,50 L145,30 L150,20 L155,30 L155,50 L160,50 L160,90 L180,90 L180,80 L200,80 L200,65 L210,65 L210,80 L220,80 L220,90 L240,90 L240,45 L243,15 L246,45 L246,90 L260,90 L260,70 L275,70 L275,55 L280,55 L280,70 L295,70 L295,90 L320,90 L320,60 L330,60 L330,40 L335,40 L335,60 L345,60 L345,90 L370,90 L370,75 L385,75 L385,90 L400,90 L400,65 L410,65 L410,50 L415,50 L415,65 L425,65 L425,90 L440,90 L440,80 L460,80 L460,90 L480,90 L480,120 Z" fill="white"/>
+  </svg>
+  <!-- 벚꽃 파티클 -->
+  <script>
+    (function(){
+      const splash = document.getElementById('splashScreen');
+      for(let i=0;i<15;i++){
+        const p = document.createElement('div');
+        p.className = 'petal';
+        p.style.left = Math.random()*100+'%';
+        p.style.animationDuration = (3+Math.random()*4)+'s';
+        p.style.animationDelay = Math.random()*3+'s';
+        p.style.width = (8+Math.random()*8)+'px';
+        p.style.height = p.style.width;
+        splash.appendChild(p);
+      }
+    })();
+  </script>
+</div>
+<style>
+@keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.2)} }
+</style>
 
 <!-- ─── SETTINGS MODAL ─── -->
 <div class="modal-overlay" id="settingsModal" style="display:none;" onclick="closeSettingsOverlay(event)">
@@ -858,6 +955,21 @@ function loadState() {
   if (!state.lastResetDate) state.lastResetDate = '';
   if (!state.culture) state.culture = null;
   if (!state.cultureDate) state.cultureDate = '';
+  // 날짜별 콘텐츠: { '2026-04-14': { katakana:[...], verb:[...], ... } }
+  if (!state.daily) state.daily = {};
+}
+
+function getToday() {
+  return new Date().toISOString().slice(0,10);
+}
+function getTodayData() {
+  const today = getToday();
+  if (!state.daily[today]) state.daily[today] = { katakana:[], verb:[], sentence:[], kanji:[], conversation:[] };
+  return state.daily[today];
+}
+// 오늘의 데이터 + 전체 누적 데이터(프롬프트용)
+function getAllDataForTab(tab) {
+  return state.data[tab] || [];
 }
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -949,13 +1061,21 @@ if (window.speechSynthesis) {
 }
 
 function getJaVoice() {
-  return ttsVoices.find(v => v.lang === 'ja-JP')
-    || ttsVoices.find(v => v.lang.startsWith('ja'))
-    || null;
+  const ja = ttsVoices.filter(v => v.lang === 'ja-JP' || v.lang.startsWith('ja'));
+  if (ja.length === 0) return null;
+  // Premium/Enhanced 음성 우선 (Google, Apple의 자연스러운 음성)
+  const premium = ja.find(v => /premium|enhanced|natural|kyoko|otoya|google/i.test(v.name));
+  if (premium) return premium;
+  // 로컬 음성 우선 (네트워크 음성보다 반응 빠름)
+  const local = ja.find(v => v.localService);
+  return local || ja[0];
 }
 
 // TTS용 텍스트 저장소 (onclick 속성 인코딩 문제 회피)
 const _ttsTexts = [];
+let _ttsSpeaking = false;
+let _ttsCurrentText = '';
+
 function ttsId(text) {
   let idx = _ttsTexts.indexOf(text);
   if (idx === -1) { idx = _ttsTexts.length; _ttsTexts.push(text); }
@@ -963,16 +1083,26 @@ function ttsId(text) {
 }
 function ttsBtn(text, inline) {
   const id = ttsId(text);
-  if (inline) return `<button class="tts-btn inline" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
-  return `<button class="tts-btn" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+  if (inline) return `<button class="tts-btn inline" onclick="toggleSpeak(_ttsTexts[${id}])">🔊</button>`;
+  return `<button class="tts-btn" onclick="toggleSpeak(_ttsTexts[${id}])">🔊</button>`;
 }
 function ttsBtnSmall(text) {
   const id = ttsId(text);
-  return `<button class="tts-btn inline" style="width:32px;height:32px;font-size:14px" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+  return `<button class="tts-btn inline" style="width:32px;height:32px;font-size:14px" onclick="toggleSpeak(_ttsTexts[${id}])">🔊</button>`;
 }
 function ttsBtnMedium(text) {
   const id = ttsId(text);
-  return `<button class="tts-btn inline" style="width:34px;height:34px;font-size:15px" onclick="speak(_ttsTexts[${id}])">🔊</button>`;
+  return `<button class="tts-btn inline" style="width:34px;height:34px;font-size:15px" onclick="toggleSpeak(_ttsTexts[${id}])">🔊</button>`;
+}
+
+function toggleSpeak(text) {
+  if (_ttsSpeaking) {
+    speechSynthesis.cancel();
+    _ttsSpeaking = false;
+    _ttsCurrentText = '';
+    return;
+  }
+  speak(text);
 }
 
 function speak(text) {
@@ -980,20 +1110,27 @@ function speak(text) {
   if (!window.speechSynthesis) return showToast('TTS를 지원하지 않는 브라우저입니다');
 
   speechSynthesis.cancel();
+  _ttsCurrentText = text;
 
   const doSpeak = () => {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ja-JP';
-    u.rate = 0.88;
+    u.rate = 0.9;
+    u.pitch = 1.1;
+    u.volume = 1.0;
+    // 자연스러운 일본어 음성 우선 선택
     const voice = getJaVoice();
     if (voice) u.voice = voice;
+    _ttsSpeaking = true;
+    u.onend = () => { _ttsSpeaking = false; _ttsCurrentText = ''; };
     u.onerror = (e) => {
+      _ttsSpeaking = false;
+      _ttsCurrentText = '';
       if (e.error !== 'canceled') showToast('음성 재생에 실패했어요');
     };
     speechSynthesis.speak(u);
   };
 
-  // iOS 워크어라운드: cancel 직후 speak하면 무시됨
   setTimeout(doSpeak, 100);
 }
 
@@ -1394,6 +1531,9 @@ async function fetchNew(tab) {
 
     state.data[tab].push(result);
     state.idx[tab] = state.data[tab].length - 1;
+    // 날짜별 콘텐츠에도 저장
+    const todayData = getTodayData();
+    todayData[tab].push(result);
     recordStudy(tab);
     saveState();
     render();
@@ -1410,7 +1550,7 @@ function renderKatakana() {
   const arr = state.data.katakana;
   const filtered = getFilteredIndices('katakana');
   const idx = state.idx.katakana;
-  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : (filtered.length > 0 ? arr[filtered[0]] : null);
+  const item = (!filtered || filtered.includes(idx)) ? arr[idx] : (filtered && filtered.length > 0 ? arr[filtered[0]] : null);
   if (filtered && item && !filtered.includes(idx)) state.idx.katakana = filtered[0];
 
   let html = navHTML('katakana');
@@ -1462,7 +1602,7 @@ function renderKatakana() {
 </div>`;
   }
 
-  html += `<button class="fetch-btn" onclick="fetchNew('katakana')">✨ 오늘의 カタカナ 2글자 배우기</button>`;
+  if (!reviewingDate) html += `<button class="fetch-btn" onclick="fetchNew('katakana')">✨ 오늘의 カタカナ 2글자 배우기</button>`;
   return html;
 }
 
@@ -1521,7 +1661,7 @@ function renderVerb() {
 </div>`;
   }
 
-  html += `<button class="fetch-btn" onclick="fetchNew('verb')">✨ 새 동사 학습하기</button>`;
+  if (!reviewingDate) html += `<button class="fetch-btn" onclick="fetchNew('verb')">✨ 새 동사 학습하기</button>`;
   return html;
 }
 
@@ -1581,7 +1721,7 @@ function renderSentence() {
 </div>`;
   }
 
-  html += `<button class="fetch-btn" onclick="fetchNew('sentence')">✨ 새 문장 학습하기</button>`;
+  if (!reviewingDate) html += `<button class="fetch-btn" onclick="fetchNew('sentence')">✨ 새 문장 학습하기</button>`;
   return html;
 }
 
@@ -1629,7 +1769,7 @@ function renderKanji() {
 </div>`;
   }
 
-  html += `<button class="fetch-btn" onclick="fetchNew('kanji')">✨ 새 한자 학습하기</button>`;
+  if (!reviewingDate) html += `<button class="fetch-btn" onclick="fetchNew('kanji')">✨ 새 한자 학습하기</button>`;
   return html;
 }
 
@@ -1657,7 +1797,7 @@ function renderConversation() {
         <div class="bubble ${isB ? 'bubble-b' : 'bubble-a'}">
           <div class="bubble-jp" style="font-size:17px">${rubyText}</div>
           <div class="bubble-sub" style="font-size:13px">${line.kr}</div>
-          <button onclick="event.stopPropagation();speak(_ttsTexts[${lineId}])" style="margin-top:6px;padding:5px 10px;border-radius:16px;background:transparent;border:1px solid ${isB ? '#B2EBE8' : '#FFD0D0'};color:${isB ? 'var(--blue-dark)' : 'var(--coral)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:32px">
+          <button onclick="event.stopPropagation();toggleSpeak(_ttsTexts[${lineId}])" style="margin-top:6px;padding:5px 10px;border-radius:16px;background:transparent;border:1px solid ${isB ? '#B2EBE8' : '#FFD0D0'};color:${isB ? 'var(--blue-dark)' : 'var(--coral)'};font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:32px">
             🔊 듣기
           </button>
         </div>
@@ -1679,7 +1819,7 @@ function renderConversation() {
 </div>`;
   }
 
-  html += `<button class="fetch-btn" onclick="fetchNew('conversation')">✨ 새 대화 학습하기</button>`;
+  if (!reviewingDate) html += `<button class="fetch-btn" onclick="fetchNew('conversation')">✨ 새 대화 학습하기</button>`;
   return html;
 }
 
@@ -2029,8 +2169,10 @@ function showDayDetail(dateStr) {
   const el = document.getElementById('calDetail');
   if (!el) return;
   const rec = state.history[dateStr];
+  const daily = state.daily[dateStr];
   const parts = dateStr.split('-');
   const label = `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+  const isToday = dateStr === getToday();
 
   if (!rec || Object.values(rec).reduce((s,v)=>s+v,0) === 0) {
     el.innerHTML = `<div class="cal-detail">
@@ -2044,19 +2186,71 @@ function showDayDetail(dateStr) {
   let rows = '';
   Object.entries(rec).forEach(([tab, count]) => {
     rows += `<div class="cal-detail-row">
-      <span>${TAB_ICONS[tab] || ''} ${TAB_LABELS[tab] || tab}</span>
+      <span>${TAB_ICONS[tab] || '📖'} ${TAB_LABELS[tab] || tab}</span>
       <span style="font-weight:700;color:var(--coral)">${count}개</span>
     </div>`;
   });
   const total = Object.values(rec).reduce((s,v)=>s+v,0);
+
+  // 해당 날짜의 학습 내용 미리보기
+  let preview = '';
+  if (daily) {
+    const items = [];
+    (daily.katakana||[]).forEach(k => items.push(`🔤 ${k.pair.map(p=>p.char).join(', ')}`));
+    (daily.verb||[]).forEach(v => items.push(`🎯 ${v.verb} (${v.meaning})`));
+    (daily.sentence||[]).forEach(s => items.push(`💬 ${s.sentence}`));
+    (daily.kanji||[]).forEach(k => items.push(`🈳 ${k.kanji} (${k.meaning})`));
+    (daily.conversation||[]).forEach(c => items.push(`🗣️ ${c.topic}`));
+    if (items.length > 0) {
+      preview = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">학습 내용</div>
+        ${items.map(it => `<div style="font-size:14px;padding:4px 0;line-height:1.5">${it}</div>`).join('')}
+        ${!isToday ? `<button onclick="reviewDay('${dateStr}')" style="margin-top:10px;width:100%;padding:10px;border-radius:var(--radius-sm);background:var(--coral-light);border:1px solid #FFD0D0;color:var(--coral);font-size:14px;font-weight:600;cursor:pointer;min-height:44px">📖 이 날의 학습 다시 보기</button>` : ''}
+      </div>`;
+    }
+  }
+
   el.innerHTML = `<div class="cal-detail">
-    <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--text)">📅 ${label} 학습 기록</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--text)">📅 ${label} 학습 기록 ${isToday ? '(오늘)' : ''}</div>
     ${rows}
     <div class="cal-detail-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:10px">
       <span style="font-weight:700">총 학습량</span>
       <span style="font-weight:800;color:var(--coral);font-size:16px">${total}개</span>
     </div>
+    ${preview}
   </div>`;
+}
+
+// 과거 날짜의 학습 내용을 메인 뷰로 로드
+let reviewingDate = null;
+let _savedData = null;
+let _savedIdx = null;
+
+function reviewDay(dateStr) {
+  const daily = state.daily[dateStr];
+  if (!daily) return showToast('해당 날짜의 학습 데이터가 없습니다');
+  // 현재 데이터 백업
+  _savedData = state.data;
+  _savedIdx = state.idx;
+  // 해당 날짜의 데이터로 교체
+  state.data = { katakana: daily.katakana||[], verb: daily.verb||[], sentence: daily.sentence||[], kanji: daily.kanji||[], conversation: daily.conversation||[] };
+  state.idx = { katakana:0, verb:0, sentence:0, kanji:0, conversation:0 };
+  reviewingDate = dateStr;
+  currentTab = 'katakana';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  render();
+}
+function exitReview() {
+  if (_savedData) { state.data = _savedData; state.idx = _savedIdx; }
+  _savedData = null; _savedIdx = null;
+  reviewingDate = null;
+  currentTab = 'calendar';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  // calendar tab
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs[tabs.length - 1].classList.add('active');
+  render();
 }
 
 /* ═══════════════════════════════════════════
@@ -2070,17 +2264,37 @@ function switchTab(tab, el) {
   render();
 }
 
+function getViewData(tab) {
+  // 리뷰 모드이면 해당 날짜 데이터 반환
+  if (reviewingDate && state.daily[reviewingDate]) {
+    return state.daily[reviewingDate][tab] || [];
+  }
+  // 일반 모드: 오늘 학습 데이터만
+  const today = getToday();
+  if (state.daily[today]) return state.daily[today][tab] || [];
+  return [];
+}
+
+function reviewBannerHTML() {
+  if (!reviewingDate) return '';
+  const parts = reviewingDate.split('-');
+  return `<div style="background:var(--yellow-light);border:1px solid #FFE082;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:14px;font-weight:700;color:#5D4037">📖 ${parseInt(parts[1])}월 ${parseInt(parts[2])}일 복습 중</div>
+    <button onclick="exitReview()" style="padding:6px 12px;border-radius:16px;background:var(--coral);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer">오늘로 돌아가기</button>
+  </div>`;
+}
+
 function render() {
   const el = document.getElementById('mainContent');
-  let content = '';
+  let content = reviewBannerHTML();
   switch(currentTab) {
-    case 'katakana':     content = renderCultureCard() + renderKatakana(); break;
-    case 'verb':         content = renderVerb(); break;
-    case 'sentence':     content = renderSentence(); break;
-    case 'kanji':        content = renderKanji(); break;
-    case 'conversation': content = renderConversation(); break;
-    case 'quiz':         content = renderQuiz(); break;
-    case 'calendar':     content = renderCalendar(); break;
+    case 'katakana':     content += (!reviewingDate ? renderCultureCard() : '') + renderKatakana(); break;
+    case 'verb':         content += renderVerb(); break;
+    case 'sentence':     content += renderSentence(); break;
+    case 'kanji':        content += renderKanji(); break;
+    case 'conversation': content += renderConversation(); break;
+    case 'quiz':         content += renderQuiz(); break;
+    case 'calendar':     content += renderCalendar(); break;
   }
   el.innerHTML = content;
   document.getElementById('streakCount').textContent = state.streak.count;
@@ -2186,6 +2400,15 @@ loadState();
 checkDailyReset();
 document.getElementById('streakCount').textContent = state.streak.count;
 render();
+
+// 스플래시 화면 자동 종료
+setTimeout(() => {
+  const splash = document.getElementById('splashScreen');
+  if (splash) {
+    splash.classList.add('fade-out');
+    setTimeout(() => splash.remove(), 600);
+  }
+}, 2000);
 </script>
 </body>
 </html>
